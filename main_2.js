@@ -29,6 +29,7 @@ let lightShadowMapViewer;
 const clock = new THREE.Clock();
 
 let showHUD = false;
+let middleMouseDown = false;
 
 init();
 
@@ -63,7 +64,7 @@ function init() {
   light.shadow.camera.right = 2000;
   light.shadow.camera.near = 1200;
   light.shadow.camera.far = 2500;
-  light.shadow.bias = -0.0005;
+  light.shadow.bias = -0.01;
 
   light.shadow.mapSize.width = SHADOW_MAP_WIDTH;
   light.shadow.mapSize.height = SHADOW_MAP_HEIGHT;
@@ -218,7 +219,13 @@ function updateShadowMap() {
   light.shadow.map.dispose(); // Dispose previous shadow map
   light.shadow.map = null; // Set map to null to trigger reallocation
 }
-
+window.addEventListener("mousedown", onMouseDown);
+function onMouseDown(event) {
+  if (event.button === 1) {
+    console.log("mouse D")
+    middleMouseDown = !middleMouseDown;
+  }
+}
 function animate() {
   render();
   stats.update();
@@ -239,7 +246,9 @@ function render() {
     }
   }
 
-  controls.update(delta);
+  if (!middleMouseDown) {
+    controls.update(delta);
+  }
 
   renderer.clear();
   renderer.render(scene, camera);
