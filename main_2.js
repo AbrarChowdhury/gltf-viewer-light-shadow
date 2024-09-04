@@ -5,8 +5,11 @@ import { FirstPersonControls } from "three/addons/controls/FirstPersonControls.j
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js"
 import { ShadowMapViewer } from "three/addons/utils/ShadowMapViewer.js"
 
-const SHADOW_MAP_WIDTH = 2048,
-  SHADOW_MAP_HEIGHT = 1024
+// const SHADOW_MAP_WIDTH = 2048,
+//   SHADOW_MAP_HEIGHT = 1024
+const SHADOW_MAP_WIDTH = 4096,
+  SHADOW_MAP_HEIGHT = 4096
+
 
 let SCREEN_WIDTH = window.innerWidth
 let SCREEN_HEIGHT = window.innerHeight
@@ -62,7 +65,7 @@ function init() {
   light.shadow.camera.right = 2000
   light.shadow.camera.near = 1200
   light.shadow.camera.far = 2500
-  light.shadow.bias = 0.0001
+  light.shadow.bias = -0.0005
 
   light.shadow.mapSize.width = SHADOW_MAP_WIDTH
   light.shadow.mapSize.height = SHADOW_MAP_HEIGHT
@@ -82,7 +85,7 @@ function init() {
   renderer.autoClear = false
 
   renderer.shadowMap.enabled = true
-  renderer.shadowMap.type = THREE.PCFShadowMap
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap
 
   // CONTROLS
   controls = new FirstPersonControls(camera, renderer.domElement)
