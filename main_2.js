@@ -179,7 +179,7 @@ function createScene() {
     })
     console.log(gltf.animations)
     const lady = gltf.scene.children[0]
-    lady.scale.set(100, 100, 100)
+    lady.scale.set(200, 200, 200)
     lady.position.set(0, FLOOR, 300)
 
     scene.add(gltf.scene)
