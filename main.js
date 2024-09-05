@@ -1,225 +1,290 @@
-import * as THREE from 'three';
-import "./style.css";
-import Stats from 'three/addons/libs/stats.module.js';
+import * as THREE from "three"
+import Stats from "three/addons/libs/stats.module.js"
+import "./style.css"
+import { FirstPersonControls } from "three/addons/controls/FirstPersonControls.js"
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js"
+import { ShadowMapViewer } from "three/addons/utils/ShadowMapViewer.js"
+import { GUI } from "dat.gui"
 
-import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
-import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
-import { ShadowMapViewer } from 'three/addons/utils/ShadowMapViewer.js';
-import { GUI } from 'dat.gui'; // Import dat.GUI
+const SHADOW_MAP_WIDTH = 4096,
+  SHADOW_MAP_HEIGHT = 4096
 
-const SHADOW_MAP_WIDTH = 2048, SHADOW_MAP_HEIGHT = 1024;
+let SCREEN_WIDTH = window.innerWidth
+let SCREEN_HEIGHT = window.innerHeight
+const FLOOR = -250
 
-let SCREEN_WIDTH = window.innerWidth;
-let SCREEN_HEIGHT = window.innerHeight;
-const FLOOR = -10;
+let camera, controls, scene, renderer
+let container, stats
 
-let camera, controls, scene, renderer;
-let container, stats;
+const NEAR = 10,
+  FAR = 3000
 
-const NEAR = 0.1, FAR = 3000; // Adjust NEAR to a small value, but not zero.
+let mixer
+let lady
+const morphs = []
+let ambient
+let light
+let lightShadowMapViewer
 
-let mixer;
+const clock = new THREE.Clock()
 
-const morphs = [];
+let showHUD = false
+let middleMouseDown = false
 
-let light;
-let lightShadowMapViewer;
-
-const clock = new THREE.Clock();
-
-let showHUD = false;
-
-init();
-createGUI(); // Initialize the GUI
+init()
 
 function init() {
-
-  container = document.createElement('div');
-  document.body.appendChild(container);
+  container = document.createElement("div")
+  document.body.appendChild(container)
 
   // CAMERA
-
-  camera = new THREE.PerspectiveCamera(20, SCREEN_WIDTH / SCREEN_HEIGHT, NEAR, FAR);
-  camera.position.set(0, 2, 20);
+  camera = new THREE.PerspectiveCamera(
+    23,
+    SCREEN_WIDTH / SCREEN_HEIGHT,
+    NEAR,
+    FAR
+  )
+  camera.position.set(700, 50, 1900)
 
   // SCENE
-
-  scene = new THREE.Scene();
-  scene.background = new THREE.Color("#D3D3D3");
+  scene = new THREE.Scene()
+  scene.background = new THREE.Color(0x808080) // Grayish background color
+  scene.fog = new THREE.Fog(0x808080, 1000, FAR) // Grayish fog color
 
   // LIGHTS
+  ambient = new THREE.AmbientLight(0xfffdfd,4.1)
+  scene.add(ambient)
 
-  const ambient = new THREE.AmbientLight(0xffffff);
-  scene.add(ambient);
+  light = new THREE.DirectionalLight(0xddebff, 2.7)
+  light.position.set(-438, 1400, 620)
+  light.castShadow = true
+  light.shadow.camera.top = 2000
+  light.shadow.camera.bottom = -2000
+  light.shadow.camera.left = -2000
+  light.shadow.camera.right = 2000
+  light.shadow.camera.near = 1200
+  light.shadow.camera.far = 2500
+  light.shadow.bias = -0.01
 
-  light = new THREE.DirectionalLight(0xffffff, 3);
-  light.position.set(0, 1500, 1000);
-  light.castShadow = true;
-  light.shadow.camera.top = 2000;
-  light.shadow.camera.bottom = -2000;
-  light.shadow.camera.left = -2000;
-  light.shadow.camera.right = 2000;
-  light.shadow.camera.near = 0.1;
-  light.shadow.camera.far = 2500;
-  light.shadow.bias = 0.0001;
+  light.shadow.mapSize.width = SHADOW_MAP_WIDTH
+  light.shadow.mapSize.height = SHADOW_MAP_HEIGHT
+  scene.add(light)
 
-  light.shadow.mapSize.width = SHADOW_MAP_WIDTH;
-  light.shadow.mapSize.height = SHADOW_MAP_HEIGHT;
-
-  scene.add(light);
-
-  createHUD();
-  createScene();
+  createHUD()
+  createScene()
 
   // RENDERER
+  renderer = new THREE.WebGLRenderer({ antialias: true })
+  renderer.setPixelRatio(window.devicePixelRatio)
+  renderer.setSize(SCREEN_WIDTH, SCREEN_HEIGHT)
+  renderer.setAnimationLoop(animate)
+  container.appendChild(renderer.domElement)
 
-  renderer = new THREE.WebGLRenderer({ antialias: true });
-  renderer.setPixelRatio(window.devicePixelRatio);
-  renderer.setSize(SCREEN_WIDTH, SCREEN_HEIGHT);
-  renderer.setAnimationLoop(animate);
-  container.appendChild(renderer.domElement);
+  renderer.autoClear = false
 
-  renderer.autoClear = false;
-
-  renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFShadowMap;
+  renderer.shadowMap.enabled = true
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap
 
   // CONTROLS
+  controls = new FirstPersonControls(camera, renderer.domElement)
+  controls.lookSpeed = 0.0125
+  controls.movementSpeed = 100
+  controls.lookVertical = true
 
-  controls = new OrbitControls(camera, renderer.domElement);
-  controls.target.set(0, 0, 0);
-  controls.update();
+  controls.lookAt(scene.position)
 
   // STATS
+  stats = new Stats()
+  container.appendChild(stats.dom)
 
-  stats = new Stats();
-  //container.appendChild(stats.dom);
-
-  //
-
-  window.addEventListener('resize', onWindowResize);
-  window.addEventListener('keydown', onKeyDown);
-
+  // Event Listeners
+  window.addEventListener("resize", onWindowResize)
+  window.addEventListener("keydown", onKeyDown)
 }
 
 function onWindowResize() {
+  SCREEN_WIDTH = window.innerWidth
+  SCREEN_HEIGHT = window.innerHeight
 
-  SCREEN_WIDTH = window.innerWidth;
-  SCREEN_HEIGHT = window.innerHeight;
+  camera.aspect = SCREEN_WIDTH / SCREEN_HEIGHT
+  camera.updateProjectionMatrix()
 
-  camera.aspect = SCREEN_WIDTH / SCREEN_HEIGHT;
-  camera.updateProjectionMatrix();
-
-  renderer.setSize(SCREEN_WIDTH, SCREEN_HEIGHT);
-
-  controls.update();
-
+  renderer.setSize(SCREEN_WIDTH, SCREEN_HEIGHT)
+  controls.handleResize()
 }
 
 function onKeyDown(event) {
-
   switch (event.keyCode) {
-
-    case 84:	/*t*/
-      showHUD = !showHUD;
-      break;
-
+    case 84: // T key
+      showHUD = !showHUD
+      break
   }
-
 }
 
 function createHUD() {
-  lightShadowMapViewer = new ShadowMapViewer(light);
-  lightShadowMapViewer.position.x = 10;
-  lightShadowMapViewer.position.y = SCREEN_HEIGHT - (SHADOW_MAP_HEIGHT / 4) - 10;
-  lightShadowMapViewer.size.width = SHADOW_MAP_WIDTH / 4;
-  lightShadowMapViewer.size.height = SHADOW_MAP_HEIGHT / 4;
-  lightShadowMapViewer.update();
+  lightShadowMapViewer = new ShadowMapViewer(light)
+  lightShadowMapViewer.position.x = 10
+  lightShadowMapViewer.position.y = SCREEN_HEIGHT - SHADOW_MAP_HEIGHT / 4 - 10
+  lightShadowMapViewer.size.width = SHADOW_MAP_WIDTH / 4
+  lightShadowMapViewer.size.height = SHADOW_MAP_HEIGHT / 4
+  lightShadowMapViewer.update()
 }
 
 function createScene() {
-
   // GROUND
+  const geometry = new THREE.PlaneGeometry(100, 100)
+  const planeMaterial = new THREE.MeshPhongMaterial({ color: 0x999999 }) // Grayish floor color
 
-  const geometry = new THREE.PlaneGeometry(100, 100);
-  const planeMaterial = new THREE.MeshPhongMaterial({ color: "gray" });
+  const ground = new THREE.Mesh(geometry, planeMaterial)
+  ground.position.set(0, FLOOR, 0)
+  ground.rotation.x = -Math.PI / 2
+  ground.scale.set(100, 100, 100)
 
-  const ground = new THREE.Mesh(geometry, planeMaterial);
+  ground.castShadow = false
+  ground.receiveShadow = true
 
-  ground.position.set(0, FLOOR, 0);
-  ground.rotation.x = -Math.PI / 2;
-  ground.scale.set(100, 100, 100);
+  scene.add(ground)
 
-  ground.castShadow = false;
-  ground.receiveShadow = true;
+  // CUBES
+  const cubeMaterial = new THREE.MeshPhongMaterial({ color: 0xffdd99 })
+  for (let i = 0; i < 10; i++) {
+    const cube = new THREE.Mesh(
+      new THREE.BoxGeometry(100, 100, 100),
+      cubeMaterial
+    )
+    cube.position.set(
+      Math.random() * 2000 - 1000,
+      FLOOR + 200,
+      Math.random() * 2000 - 1000
+    )
 
-  scene.add(ground);
+    cube.castShadow = true
+    cube.receiveShadow = true
+
+    scene.add(cube)
+  }
 
   // MORPHS
+  mixer = new THREE.AnimationMixer(scene)
 
-  mixer = new THREE.AnimationMixer(scene);
+  const gltfloader = new GLTFLoader()
+  gltfloader.load("lady.glb", function (gltf) {
+    gltf.scene.traverse(function (node) {
+      if (node.isMesh) {
+        node.castShadow = true
+        node.receiveShadow = true
+      }
+    })
+    console.log(gltf.animations)
+    lady = gltf.scene.children[0]
+    lady.scale.set(200, 200, 200)
+    lady.position.set(0, FLOOR, 300)
+    lady.rotation.z=5.6
+    createGUI()
 
-  const gltfloader = new GLTFLoader();
-
-  gltfloader.load('lady.glb', function (gltf) {
-    const lady = gltf.scene.children[0];
-    console.log(lady);
-    lady.scale.set(1, 1, 1);
-    lady.position.set(0, FLOOR, 2);
-    scene.add(lady);
-    console.log(lady);
-    const clip = gltf.animations[0];
-    lady.castShadow=true
-    lady.receiveShadow=true
-    controls.target.copy(lady.position);
-    controls.update();
-  });
-
+    scene.add(gltf.scene)
+    const animations = gltf.animations
+    animations.forEach((clip) => {
+      if (clip.name === "arguing") {
+        mixer.clipAction(clip).setLoop(THREE.LoopRepeat).play()
+      }
+    })
+  })
 }
 
 function createGUI() {
-  const gui = new GUI();
+  const gui = new GUI()
 
-  // Camera controls
-  const cameraFolder = gui.addFolder('Camera');
-  cameraFolder.add(camera.position, 'x', -1, 1);
-  cameraFolder.add(camera.position, 'y', 0, 10);
-  cameraFolder.add(camera.position, 'z', 0, 10);
-  cameraFolder.add(camera, 'fov', 1, 100).onChange(() => {
-    camera.updateProjectionMatrix();
-  });
-  cameraFolder.open();
+  // Directional Light Controls
+  const lightFolder = gui.addFolder("Directional Light")
+  lightFolder.add(light.position, "x", -2000, 2000).name("Position X")
+  lightFolder.add(light.position, "y", 0, 3000).name("Position Y")
+  lightFolder.add(light.position, "z", -2000, 2000).name("Position Z")
+  lightFolder.add(light, "intensity", 0, 10).name("Intensity")
+  lightFolder.add(light.shadow.camera, "near", 0.1, 3000).name("Shadow Near")
+  lightFolder.add(light.shadow.camera, "far", 0.1, 5000).name("Shadow Far")
+  lightFolder.add(light.shadow.camera, "top", -3000, 3000).name("Shadow Top")
+  lightFolder
+    .add(light.shadow.camera, "bottom", -3000, 3000)
+    .name("Shadow Bottom")
+  lightFolder.add(light.shadow.camera, "left", -3000, 3000).name("Shadow Left")
+  lightFolder
+    .add(light.shadow.camera, "right", -3000, 3000)
+    .name("Shadow Right")
+  lightFolder.add(light.shadow, "bias", -0.01, 0.01).name("Shadow Bias")
+  lightFolder
+    .add(light.shadow.mapSize, "width", 512, 8192)
+    .name("Shadow Map Width")
+    .onChange(updateShadowMap)
+  lightFolder
+    .add(light.shadow.mapSize, "height", 512, 8192)
+    .name("Shadow Map Height")
+    .onChange(updateShadowMap)
+  lightFolder
+    .addColor({ color: light.color.getHex() }, "color")
+    .name("Light Color")
+    .onChange((val) => light.color.setHex(val))
 
-  // Light controls
-  const lightFolder = gui.addFolder('Directional Light');
-  lightFolder.add(light.position, 'x', -5000, 5000);
-  lightFolder.add(light.position, 'y', -5000, 5000);
-  lightFolder.add(light.position, 'z', -5000, 5000);
-  lightFolder.add(light, 'intensity', 0, 10);
-  lightFolder.open();
+  lightFolder.open()
+
+  // Ambient Light Controls
+  const ambientFolder = gui.addFolder("Ambient Light")
+  ambientFolder.add(ambient, "intensity", 0, 10).name("Intensity")
+  ambientFolder
+    .addColor({ color: ambient.color.getHex() }, "color")
+    .name("Light Color")
+    .onChange((val) => ambient.color.setHex(val))
+
+  ambientFolder.open()
+
+  // The model
+  const modelFolder = gui.addFolder("Model")
+  console.log("gui: ", lady)
+  modelFolder.add(lady.rotation, "z", 0, Math.PI * 2,0.1).name("Z Rotation")
 }
 
+function updateShadowMap() {
+  light.shadow.mapSize.width = SHADOW_MAP_WIDTH
+  light.shadow.mapSize.height = SHADOW_MAP_HEIGHT
+  light.shadow.map.dispose() // Dispose previous shadow map
+  light.shadow.map = null // Set map to null to trigger reallocation
+}
+window.addEventListener("mousedown", onMouseDown)
+function onMouseDown(event) {
+  if (event.button === 1) {
+    console.log("mouse D")
+    middleMouseDown = !middleMouseDown
+  }
+}
 function animate() {
-
-  render();
-  stats.update();
-
+  render()
+  stats.update()
 }
 
 function render() {
+  const delta = clock.getDelta()
 
-  const delta = clock.getDelta();
+  mixer.update(delta)
 
-  mixer.update(delta);
+  for (let i = 0; i < morphs.length; i++) {
+    const morph = morphs[i]
 
-  controls.update();
+    morph.position.x += morph.speed * delta
 
-  renderer.clear();
-  renderer.render(scene, camera);
+    if (morph.position.x > 2000) {
+      morph.position.x = -1000 - Math.random() * 500
+    }
+  }
+
+  if (!middleMouseDown) {
+    controls.update(delta)
+  }
+
+  renderer.clear()
+  renderer.render(scene, camera)
 
   // Render debug HUD with shadow map
   if (showHUD) {
-    lightShadowMapViewer.render(renderer);
+    lightShadowMapViewer.render(renderer)
   }
-
 }
