@@ -52,7 +52,7 @@ function init() {
   scene.fog = new THREE.Fog(0x808080, 1000, FAR) // Grayish fog color
 
   // LIGHTS
-  ambient = new THREE.AmbientLight(0xfffdfd,4.1)
+  ambient = new THREE.AmbientLight(0xfffdfd, 4.1)
   scene.add(ambient)
 
   light = new THREE.DirectionalLight(0xddebff, 2.7)
@@ -173,13 +173,25 @@ function createScene() {
       if (node.isMesh) {
         node.castShadow = true
         node.receiveShadow = true
+        // Set roughness close to 1
+        // if (node.material) {
+        //   node.material.roughness = 1
+        // }
       }
     })
-    console.log(gltf.animations)
+    // "Ch22_Body" body
+    // "Ch22_Hair" hair
+    // "Ch22_Pants" pants
+    // "Ch22_Shirt"
+    // "Ch22_Sneakers"
     lady = gltf.scene.children[0]
+    // roughness
+    lady.getObjectByName("Ch22_Hair").material.roughness=0.7
+    lady.getObjectByName("Ch22_Body").material.roughness=50
     lady.scale.set(200, 200, 200)
     lady.position.set(0, FLOOR, 300)
-    lady.rotation.z=5.6
+    lady.rotation.z = 5.6
+    console.log(lady)
     createGUI()
 
     scene.add(gltf.scene)
@@ -240,7 +252,7 @@ function createGUI() {
   // The model
   const modelFolder = gui.addFolder("Model")
   console.log("gui: ", lady)
-  modelFolder.add(lady.rotation, "z", 0, Math.PI * 2,0.1).name("Z Rotation")
+  modelFolder.add(lady.rotation, "z", 0, Math.PI * 2, 0.1).name("Z Rotation")
 }
 
 function updateShadowMap() {
