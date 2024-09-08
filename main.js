@@ -1,115 +1,143 @@
-import * as THREE from "three"
-import Stats from "three/addons/libs/stats.module.js"
-import "./style.css"
-import { FirstPersonControls } from "three/addons/controls/FirstPersonControls.js"
-import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js"
-import { ShadowMapViewer } from "three/addons/utils/ShadowMapViewer.js"
-import { GUI } from "dat.gui"
+import * as THREE from "three";
+import Stats from "three/addons/libs/stats.module.js";
+import "./style.css";
+import { FirstPersonControls } from "three/addons/controls/FirstPersonControls.js";
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+import { ShadowMapViewer } from "three/addons/utils/ShadowMapViewer.js";
+import { GUI } from "dat.gui";
 
 const SHADOW_MAP_WIDTH = 4096,
-  SHADOW_MAP_HEIGHT = 4096
+  SHADOW_MAP_HEIGHT = 4096;
 
-let SCREEN_WIDTH = window.innerWidth
-let SCREEN_HEIGHT = window.innerHeight
-const FLOOR = -250
+let SCREEN_WIDTH = window.innerWidth;
+let SCREEN_HEIGHT = window.innerHeight;
+const FLOOR = -250;
 
-let camera, controls, scene, renderer
-let container, stats
+let camera, controls, scene, renderer;
+let container, stats;
 
 const NEAR = 10,
-  FAR = 3000
+  FAR = 3000;
 
-let mixer
-let lady
-const morphs = []
-let ambient
-let light, light1, light2, light3
-let lightShadowMapViewer
+let mixer;
+let lady;
+const morphs = [];
+let ambient;
+let directionalLight, pointLight1, pointLight2, spotlight;
+let lightShadowMapViewer;
 
-const clock = new THREE.Clock()
+const clock = new THREE.Clock();
 
-let showHUD = false
-let middleMouseDown = false
+let showHUD = false;
+let middleMouseDown = false;
 
-init()
+init();
 
 function init() {
-  container = document.createElement("div")
-  document.body.appendChild(container)
+  container = document.createElement("div");
+  document.body.appendChild(container);
 
   // CAMERA
-  camera = new THREE.PerspectiveCamera(
-    23,
-    SCREEN_WIDTH / SCREEN_HEIGHT,
-    NEAR,
-    FAR
-  )
-  camera.position.set(700, 50, 1900)
+  camera = new THREE.PerspectiveCamera(23, SCREEN_WIDTH / SCREEN_HEIGHT, NEAR, FAR);
+  camera.position.set(700, 50, 1900);
 
   // SCENE
-  scene = new THREE.Scene()
-  scene.background = new THREE.Color(0x808080) // Grayish background color
-  scene.fog = new THREE.Fog(0x808080, 1000, FAR) // Grayish fog color
+  scene = new THREE.Scene();
+  scene.background = new THREE.Color(0x808080);
+  scene.fog = new THREE.Fog(0x808080, 1000, FAR);
+  addLights();
+  createHUD();
+  createScene();
 
-  // LIGHTS
-  ambient = new THREE.AmbientLight(0xfffdfd, 4.1)
-  scene.add(ambient)
+  // RENDERER
+  renderer = new THREE.WebGLRenderer({ antialias: true });
+  renderer.setPixelRatio(window.devicePixelRatio);
+  renderer.setSize(SCREEN_WIDTH, SCREEN_HEIGHT);
+  renderer.setAnimationLoop(animate);
+  container.appendChild(renderer.domElement);
 
-  light = new THREE.DirectionalLight(0xddebff, 2.7)
-  light.position.set(-438, 1400, 620)
-  light.castShadow = true
-  light.shadow.camera.top = 2000
-  light.shadow.camera.bottom = -2000
-  light.shadow.camera.left = -2000
-  light.shadow.camera.right = 2000
-  light.shadow.camera.near = 1200
-  light.shadow.camera.far = 2500
-  light.shadow.bias = -0.01
+  renderer.autoClear = false;
+  renderer.shadowMap.enabled = true;
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
-  light.shadow.mapSize.width = SHADOW_MAP_WIDTH
-  light.shadow.mapSize.height = SHADOW_MAP_HEIGHT
-  scene.add(light)
+  // CONTROLS
+  controls = new FirstPersonControls(camera, renderer.domElement);
+  controls.lookSpeed = 0.0125;
+  controls.movementSpeed = 100;
+  controls.lookVertical = true;
+  controls.lookAt(scene.position);
 
-  // Add three more lights to the scene
-  light1 = new THREE.PointLight(0xff0000, 1, 50000) // Red light
-  light1.position.set(150, 46, 400)
-  light1.castShadow = true
-  light1.shadow.mapSize.width = SHADOW_MAP_WIDTH
-  light1.shadow.mapSize.height = SHADOW_MAP_HEIGHT
-  scene.add(light1)
+  // STATS
+  stats = new Stats();
+  container.appendChild(stats.dom);
 
-  light2 = new THREE.PointLight(0x00ff00, 1, 50000) // Green light
-  light2.position.set(35, 46, 400)
-  light2.castShadow = true
-  light2.shadow.mapSize.width = SHADOW_MAP_WIDTH
-  light2.shadow.mapSize.height = SHADOW_MAP_HEIGHT
-  scene.add(light2)
+  // Event Listeners
+  window.addEventListener("resize", onWindowResize);
+  window.addEventListener("keydown", onKeyDown);
+}
 
-  light3 = new THREE.SpotLight(0x0000ff, 50000) // Blue spotlight
-  light3.position.set(0, 200, 0)
-  light3.castShadow = true
-  light3.shadow.mapSize.width = SHADOW_MAP_WIDTH
-  light3.shadow.mapSize.height = SHADOW_MAP_HEIGHT
-  scene.add(light3)
+function addLights() {
+  // AMBIENT LIGHT
+  ambient = new THREE.AmbientLight(0xfffdfd, 1);
+  scene.add(ambient);
+
+  // DIRECTIONAL LIGHT
+  directionalLight = new THREE.DirectionalLight(0xddebff, 2.7);
+  directionalLight.position.set(-438, 1400, 620);
+  directionalLight.castShadow = true;
+  directionalLight.shadow.camera.top = 2000;
+  directionalLight.shadow.camera.bottom = -2000;
+  directionalLight.shadow.camera.left = -2000;
+  directionalLight.shadow.camera.right = 2000;
+  directionalLight.shadow.camera.near = 1200;
+  directionalLight.shadow.camera.far = 2500;
+  directionalLight.shadow.bias = -0.01;
+  directionalLight.shadow.mapSize.width = SHADOW_MAP_WIDTH;
+  directionalLight.shadow.mapSize.height = SHADOW_MAP_HEIGHT;
+  scene.add(directionalLight);
+
+  // POINT LIGHT 1 (Red)
+  pointLight1 = new THREE.PointLight(0xff0000, 1, 50000);
+  pointLight1.position.set(150, 46, 400);
+  pointLight1.castShadow = true;
+  pointLight1.shadow.mapSize.width = SHADOW_MAP_WIDTH;
+  pointLight1.shadow.mapSize.height = SHADOW_MAP_HEIGHT;
+  scene.add(pointLight1);
+
+  // POINT LIGHT 2 (Green)
+  pointLight2 = new THREE.PointLight(0x00ff00, 1, 50000);
+  pointLight2.position.set(35, 46, 400);
+  pointLight2.castShadow = true;
+  pointLight2.shadow.mapSize.width = SHADOW_MAP_WIDTH;
+  pointLight2.shadow.mapSize.height = SHADOW_MAP_HEIGHT;
+  scene.add(pointLight2);
+
+  // SPOTLIGHT (Blue)
+  spotlight = new THREE.SpotLight(0x0000ff, 2500, 1000, 0.59, 0.2, 0);
+  spotlight.position.set(0, 730, 0);
+  spotlight.castShadow = true;
+  spotlight.shadow.mapSize.width = SHADOW_MAP_WIDTH;
+  spotlight.shadow.mapSize.height = SHADOW_MAP_HEIGHT;
+  scene.add(spotlight);
 
   function addLightHelpers() {
     scene.traverse((child) => {
       if (child.isDirectionalLight) {
         const helper = new THREE.DirectionalLightHelper(child, 5);
-        helper.isLightHelper = true; // Mark it for toggling
+        helper.isLightHelper = true;
         scene.add(helper);
       } else if (child.isPointLight) {
         const helper = new THREE.PointLightHelper(child, 5);
-        helper.isLightHelper = true; // Mark it for toggling
+        helper.isLightHelper = true;
         scene.add(helper);
       } else if (child.isSpotLight) {
         const helper = new THREE.SpotLightHelper(child);
-        helper.isLightHelper = true; // Mark it for toggling
+        helper.isLightHelper = true;
         scene.add(helper);
       }
-      // Add more light types as needed
     });
   }
+
   function toggleHelpers() {
     scene.traverse((child) => {
       if (child.isLightHelper) {
@@ -117,40 +145,91 @@ function init() {
       }
     });
   }
-  addLightHelpers()
-  toggleHelpers()
-  createHUD()
-  createScene()
 
-  // RENDERER
-  renderer = new THREE.WebGLRenderer({ antialias: true })
-  renderer.setPixelRatio(window.devicePixelRatio)
-  renderer.setSize(SCREEN_WIDTH, SCREEN_HEIGHT)
-  renderer.setAnimationLoop(animate)
-  container.appendChild(renderer.domElement)
-
-  renderer.autoClear = false
-
-  renderer.shadowMap.enabled = true
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap
-
-  // CONTROLS
-  controls = new FirstPersonControls(camera, renderer.domElement)
-  controls.lookSpeed = 0.0125
-  controls.movementSpeed = 100
-  controls.lookVertical = true
-
-  controls.lookAt(scene.position)
-
-  // STATS
-  stats = new Stats()
-  container.appendChild(stats.dom)
-
-  // Event Listeners
-  window.addEventListener("resize", onWindowResize)
-  window.addEventListener("keydown", onKeyDown)
+  addLightHelpers();
+  toggleHelpers();
 }
 
+function createGUI() {
+  const gui = new GUI()
+
+  // Directional Light Controls
+  const directionalLightFolder = gui.addFolder("Directional Light");
+  directionalLightFolder.add(directionalLight, "visible").name("Toggle Light");
+  directionalLightFolder.add(directionalLight.position, "x", -2000, 2000).name("Position X");
+  directionalLightFolder.add(directionalLight.position, "y", 0, 3000).name("Position Y");
+  directionalLightFolder.add(directionalLight.position, "z", -2000, 2000).name("Position Z");
+  directionalLightFolder.add(directionalLight, "intensity", 0, 10).name("Intensity");
+  directionalLightFolder.add(directionalLight.shadow.camera, "near", 0.1, 3000).name("Shadow Near")
+  directionalLightFolder.add(directionalLight.shadow.camera, "far", 0.1, 5000).name("Shadow Far")
+  directionalLightFolder.add(directionalLight.shadow.camera, "top", -3000, 3000).name("Shadow Top")
+  directionalLightFolder
+    .add(directionalLight.shadow.camera, "bottom", -3000, 3000)
+    .name("Shadow Bottom")
+  directionalLightFolder.add(directionalLight.shadow.camera, "left", -3000, 3000).name("Shadow Left")
+  directionalLightFolder
+    .add(directionalLight.shadow.camera, "right", -3000, 3000)
+    .name("Shadow Right")
+  directionalLightFolder.add(directionalLight.shadow, "bias", -0.01, 0.01).name("Shadow Bias")
+  directionalLightFolder
+    .add(directionalLight.shadow.mapSize, "width", 512, 8192)
+    .name("Shadow Map Width")
+    .onChange(updateShadowMap)
+  directionalLightFolder
+    .add(directionalLight.shadow.mapSize, "height", 512, 8192)
+    .name("Shadow Map Height")
+    .onChange(updateShadowMap)
+  directionalLightFolder
+    .addColor({ color: directionalLight.color.getHex() }, "color")
+    .name("Light Color")
+    .onChange((val) => directionalLight.color.setHex(val))
+
+
+  // Point Light 1 Controls
+  const pointLight1Folder = gui.addFolder("Red Point Light");
+  pointLight1Folder.add(pointLight1.position, "x", -2000, 2000).name("Position X");
+  pointLight1Folder.add(pointLight1.position, "y", -1000, 3000).name("Position Y");
+  pointLight1Folder.add(pointLight1.position, "z", -2000, 2000).name("Position Z");
+  pointLight1Folder.add(pointLight1, "intensity", 0, 100000).name("Intensity");
+  pointLight1Folder.addColor({ color: pointLight1.color.getHex() }, "color").name("Light Color");
+  pointLight1Folder.add(pointLight1, "castShadow").name("Cast Shadow");
+
+  // Point Light 2 Controls
+  const pointLight2Folder = gui.addFolder("Green Point Light");
+  pointLight2Folder.add(pointLight2.position, "x", -2000, 2000).name("Position X");
+  pointLight2Folder.add(pointLight2.position, "y", -1000, 3000).name("Position Y");
+  pointLight2Folder.add(pointLight2.position, "z", -2000, 2000).name("Position Z");
+  pointLight2Folder.add(pointLight2, "intensity", 0, 100000).name("Intensity");
+  pointLight2Folder.addColor({ color: pointLight2.color.getHex() }, "color").name("Light Color");
+  pointLight2Folder.add(pointLight2, "castShadow").name("Cast Shadow");
+
+  // Spotlight Controls
+  const spotlightFolder = gui.addFolder("Blue Spotlight");
+  spotlightFolder.add(spotlight.position, "x", -2000, 2000).name("Position X");
+  spotlightFolder.add(spotlight.position, "y", -1000, 3000).name("Position Y");
+  spotlightFolder.add(spotlight.position, "z", -2000, 2000).name("Position Z");
+  spotlightFolder.add(spotlight, "intensity", 0, 5000).name("Intensity");
+  spotlightFolder.add(spotlight, "distance", 0, 2000).name("Distance");
+  spotlightFolder.add(spotlight, "angle", 0, Math.PI / 2).name("Angle");
+  spotlightFolder.add(spotlight, "penumbra", 0, 1).name("Penumbra");
+  spotlightFolder.add(spotlight, "decay", 0, 2).name("Decay");
+  spotlightFolder.addColor({ color: spotlight.color.getHex() }, "color").name("Light Color");
+
+
+  // Ambient Light Controls
+  const ambientFolder = gui.addFolder("Ambient Light")
+  ambientFolder.add(ambient, "visible").name("Toggle Light")
+  ambientFolder.add(ambient, "intensity", 0, 10).name("Intensity")
+  ambientFolder
+    .addColor({ color: ambient.color.getHex() }, "color")
+    .name("Light Color")
+    .onChange((val) => ambient.color.setHex(val))
+
+  // The model
+  const modelFolder = gui.addFolder("Model")
+  console.log("gui: ", lady)
+  modelFolder.add(lady.rotation, "z", 0, Math.PI * 2, 0.1).name("Z Rotation")
+}
 function onWindowResize() {
   SCREEN_WIDTH = window.innerWidth
   SCREEN_HEIGHT = window.innerHeight
@@ -171,7 +250,7 @@ function onKeyDown(event) {
 }
 
 function createHUD() {
-  lightShadowMapViewer = new ShadowMapViewer(light)
+  lightShadowMapViewer = new ShadowMapViewer(directionalLight)
   lightShadowMapViewer.position.x = 10
   lightShadowMapViewer.position.y = SCREEN_HEIGHT - SHADOW_MAP_HEIGHT / 4 - 10
   lightShadowMapViewer.size.width = SHADOW_MAP_WIDTH / 4
@@ -222,10 +301,6 @@ function createScene() {
       if (node.isMesh) {
         node.castShadow = true
         node.receiveShadow = true
-        // Set roughness close to 1
-        // if (node.material) {
-        //   node.material.roughness = 1
-        // }
       }
     })
     // "Ch22_Body" body
@@ -252,102 +327,13 @@ function createScene() {
     })
   })
 }
-
-function createGUI() {
-  const gui = new GUI()
-
-  // Directional Light Controls
-  const lightFolder = gui.addFolder("Directional Light")
-  lightFolder.add(light, "visible").name("Toggle Light")
-  lightFolder.add(light.position, "x", -2000, 2000).name("Position X")
-  lightFolder.add(light.position, "y", 0, 3000).name("Position Y")
-  lightFolder.add(light.position, "z", -2000, 2000).name("Position Z")
-  lightFolder.add(light, "intensity", 0, 10).name("Intensity")
-  lightFolder.add(light.shadow.camera, "near", 0.1, 3000).name("Shadow Near")
-  lightFolder.add(light.shadow.camera, "far", 0.1, 5000).name("Shadow Far")
-  lightFolder.add(light.shadow.camera, "top", -3000, 3000).name("Shadow Top")
-  lightFolder
-    .add(light.shadow.camera, "bottom", -3000, 3000)
-    .name("Shadow Bottom")
-  lightFolder.add(light.shadow.camera, "left", -3000, 3000).name("Shadow Left")
-  lightFolder
-    .add(light.shadow.camera, "right", -3000, 3000)
-    .name("Shadow Right")
-  lightFolder.add(light.shadow, "bias", -0.01, 0.01).name("Shadow Bias")
-  lightFolder
-    .add(light.shadow.mapSize, "width", 512, 8192)
-    .name("Shadow Map Width")
-    .onChange(updateShadowMap)
-  lightFolder
-    .add(light.shadow.mapSize, "height", 512, 8192)
-    .name("Shadow Map Height")
-    .onChange(updateShadowMap)
-  lightFolder
-    .addColor({ color: light.color.getHex() }, "color")
-    .name("Light Color")
-    .onChange((val) => light.color.setHex(val))
-
-  // lightFolder.open()
-
-  // Add controls for Light 1
-  const light1Folder = gui.addFolder("Red Light")
-  light1Folder.add(light1.position, "x", -2000, 2000).name("Position X")
-  light1Folder.add(light1.position, "y", -1000, 3000).name("Position Y")
-  light1Folder.add(light1.position, "z", -2000, 2000).name("Position Z")
-  light1Folder.add(light1, "intensity", 0, 100000).name("Intensity")
-  light1Folder
-    .add(light1, "castShadow")
-    .name("Cast Shadow")
-    .onChange(updateShadowMap)
-  light1Folder.add(light1, "visible").name("Toggle Light")
-
-  // Add controls for Light 2
-  const light2Folder = gui.addFolder("Green Light")
-  light2Folder.add(light2.position, "x", -2000, 2000).name("Position X")
-  light2Folder.add(light2.position, "y", -1000, 3000).name("Position Y")
-  light2Folder.add(light2.position, "z", -2000, 2000).name("Position Z")
-  light2Folder.add(light2, "intensity", 0, 100000).name("Intensity")
-  light2Folder
-    .add(light2, "castShadow")
-    .name("Cast Shadow")
-    .onChange(updateShadowMap)
-  light2Folder.add(light2, "visible").name("Toggle Light")
-
-
-  // Add controls for Light 3
-  const light3Folder = gui.addFolder("Blue Spotlight")
-  light3Folder.add(light3.position, "x", -2000, 2000).name("Position X")
-  light3Folder.add(light3.position, "y", -1000, 3000).name("Position Y")
-  light3Folder.add(light3.position, "z", -2000, 2000).name("Position Z")
-  light3Folder.add(light3, "intensity", 0, 100000).name("Intensity")
-  light3Folder
-    .add(light3, "castShadow")
-    .name("Cast Shadow")
-    .onChange(updateShadowMap)
-  light3Folder.add(light3, "visible").name("Toggle Light")
-
-  // Ambient Light Controls
-  const ambientFolder = gui.addFolder("Ambient Light")
-  ambientFolder.add(ambient, "visible").name("Toggle Light")
-  ambientFolder.add(ambient, "intensity", 0, 10).name("Intensity")
-  ambientFolder
-    .addColor({ color: ambient.color.getHex() }, "color")
-    .name("Light Color")
-    .onChange((val) => ambient.color.setHex(val))
-
-
-  // The model
-  const modelFolder = gui.addFolder("Model")
-  console.log("gui: ", lady)
-  modelFolder.add(lady.rotation, "z", 0, Math.PI * 2, 0.1).name("Z Rotation")
-}
-
 function updateShadowMap() {
-  light.shadow.mapSize.width = SHADOW_MAP_WIDTH
-  light.shadow.mapSize.height = SHADOW_MAP_HEIGHT
-  light.shadow.map.dispose() // Dispose previous shadow map
-  light.shadow.map = null // Set map to null to trigger reallocation
+  directionalLight.shadow.mapSize.width = SHADOW_MAP_WIDTH
+  directionalLight.shadow.mapSize.height = SHADOW_MAP_HEIGHT
+  directionalLight.shadow.map.dispose() // Dispose previous shadow map
+  directionalLight.shadow.map = null // Set map to null to trigger reallocation
 }
+
 window.addEventListener("mousedown", onMouseDown)
 function onMouseDown(event) {
   if (event.button === 1) {
