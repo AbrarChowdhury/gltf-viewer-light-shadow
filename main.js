@@ -23,7 +23,7 @@ let mixer
 let lady
 const morphs = []
 let ambient
-let light
+let light, light1, light2, light3
 let lightShadowMapViewer
 
 const clock = new THREE.Clock()
@@ -70,6 +70,55 @@ function init() {
   light.shadow.mapSize.height = SHADOW_MAP_HEIGHT
   scene.add(light)
 
+  // Add three more lights to the scene
+  light1 = new THREE.PointLight(0xff0000, 1, 50000) // Red light
+  light1.position.set(150, 46, 400)
+  light1.castShadow = true
+  light1.shadow.mapSize.width = SHADOW_MAP_WIDTH
+  light1.shadow.mapSize.height = SHADOW_MAP_HEIGHT
+  scene.add(light1)
+
+  light2 = new THREE.PointLight(0x00ff00, 1, 50000) // Green light
+  light2.position.set(35, 46, 400)
+  light2.castShadow = true
+  light2.shadow.mapSize.width = SHADOW_MAP_WIDTH
+  light2.shadow.mapSize.height = SHADOW_MAP_HEIGHT
+  scene.add(light2)
+
+  light3 = new THREE.SpotLight(0x0000ff, 50000) // Blue spotlight
+  light3.position.set(0, 200, 0)
+  light3.castShadow = true
+  light3.shadow.mapSize.width = SHADOW_MAP_WIDTH
+  light3.shadow.mapSize.height = SHADOW_MAP_HEIGHT
+  scene.add(light3)
+
+  function addLightHelpers() {
+    scene.traverse((child) => {
+      if (child.isDirectionalLight) {
+        const helper = new THREE.DirectionalLightHelper(child, 5);
+        helper.isLightHelper = true; // Mark it for toggling
+        scene.add(helper);
+      } else if (child.isPointLight) {
+        const helper = new THREE.PointLightHelper(child, 5);
+        helper.isLightHelper = true; // Mark it for toggling
+        scene.add(helper);
+      } else if (child.isSpotLight) {
+        const helper = new THREE.SpotLightHelper(child);
+        helper.isLightHelper = true; // Mark it for toggling
+        scene.add(helper);
+      }
+      // Add more light types as needed
+    });
+  }
+  function toggleHelpers() {
+    scene.traverse((child) => {
+      if (child.isLightHelper) {
+        child.visible = true;
+      }
+    });
+  }
+  addLightHelpers()
+  toggleHelpers()
   createHUD()
   createScene()
 
@@ -186,8 +235,8 @@ function createScene() {
     // "Ch22_Sneakers"
     lady = gltf.scene.children[0]
     // roughness
-    lady.getObjectByName("Ch22_Hair").material.roughness=0.7
-    lady.getObjectByName("Ch22_Body").material.roughness=50
+    lady.getObjectByName("Ch22_Hair").material.roughness = 0.7
+    lady.getObjectByName("Ch22_Body").material.roughness = 50
     lady.scale.set(200, 200, 200)
     lady.position.set(0, FLOOR, 300)
     lady.rotation.z = 5.6
@@ -209,6 +258,7 @@ function createGUI() {
 
   // Directional Light Controls
   const lightFolder = gui.addFolder("Directional Light")
+  lightFolder.add(light, "visible").name("Toggle Light")
   lightFolder.add(light.position, "x", -2000, 2000).name("Position X")
   lightFolder.add(light.position, "y", 0, 3000).name("Position Y")
   lightFolder.add(light.position, "z", -2000, 2000).name("Position Z")
@@ -237,17 +287,54 @@ function createGUI() {
     .name("Light Color")
     .onChange((val) => light.color.setHex(val))
 
-  lightFolder.open()
+  // lightFolder.open()
+
+  // Add controls for Light 1
+  const light1Folder = gui.addFolder("Red Light")
+  light1Folder.add(light1.position, "x", -2000, 2000).name("Position X")
+  light1Folder.add(light1.position, "y", -1000, 3000).name("Position Y")
+  light1Folder.add(light1.position, "z", -2000, 2000).name("Position Z")
+  light1Folder.add(light1, "intensity", 0, 100000).name("Intensity")
+  light1Folder
+    .add(light1, "castShadow")
+    .name("Cast Shadow")
+    .onChange(updateShadowMap)
+  light1Folder.add(light1, "visible").name("Toggle Light")
+
+  // Add controls for Light 2
+  const light2Folder = gui.addFolder("Green Light")
+  light2Folder.add(light2.position, "x", -2000, 2000).name("Position X")
+  light2Folder.add(light2.position, "y", -1000, 3000).name("Position Y")
+  light2Folder.add(light2.position, "z", -2000, 2000).name("Position Z")
+  light2Folder.add(light2, "intensity", 0, 100000).name("Intensity")
+  light2Folder
+    .add(light2, "castShadow")
+    .name("Cast Shadow")
+    .onChange(updateShadowMap)
+  light2Folder.add(light2, "visible").name("Toggle Light")
+
+
+  // Add controls for Light 3
+  const light3Folder = gui.addFolder("Blue Spotlight")
+  light3Folder.add(light3.position, "x", -2000, 2000).name("Position X")
+  light3Folder.add(light3.position, "y", -1000, 3000).name("Position Y")
+  light3Folder.add(light3.position, "z", -2000, 2000).name("Position Z")
+  light3Folder.add(light3, "intensity", 0, 100000).name("Intensity")
+  light3Folder
+    .add(light3, "castShadow")
+    .name("Cast Shadow")
+    .onChange(updateShadowMap)
+  light3Folder.add(light3, "visible").name("Toggle Light")
 
   // Ambient Light Controls
   const ambientFolder = gui.addFolder("Ambient Light")
+  ambientFolder.add(ambient, "visible").name("Toggle Light")
   ambientFolder.add(ambient, "intensity", 0, 10).name("Intensity")
   ambientFolder
     .addColor({ color: ambient.color.getHex() }, "color")
     .name("Light Color")
     .onChange((val) => ambient.color.setHex(val))
 
-  ambientFolder.open()
 
   // The model
   const modelFolder = gui.addFolder("Model")
