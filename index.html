@@ -11,6 +11,19 @@
       let directionalLight, pointLight1, pointLight2, spotlight, ambient
       let lightShadowMapViewer
       let SCREEN_WIDTH, SCREEN_HEIGHT
+      SCREEN_WIDTH = window.innerWidth
+      SCREEN_HEIGHT = window.innerHeight
+      const FLOOR = -250
+
+      let camera, controls, scene, renderer
+      let container, stats
+
+      const NEAR = 10,
+        FAR = 3000
+
+      let mixer
+      let lady
+      const morphs = []
     </script>
     <script type="module" src="/main.js"></script>
   </body>

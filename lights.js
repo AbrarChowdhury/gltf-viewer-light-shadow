@@ -1,14 +1,10 @@
 import * as THREE from "three";
-import Stats from "three/addons/libs/stats.module.js";
-import "./style.css";
-import { FirstPersonControls } from "three/addons/controls/FirstPersonControls.js";
-import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { ShadowMapViewer } from "three/addons/utils/ShadowMapViewer.js";
-import { GUI } from "dat.gui";
-
 
 const SHADOW_MAP_WIDTH = 4096,
   SHADOW_MAP_HEIGHT = 4096;
+
+
 function addLights(scene) {
     // AMBIENT LIGHT
     ambient = new THREE.AmbientLight(0xfffdfd, 1);
