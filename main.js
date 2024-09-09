@@ -99,7 +99,7 @@ function addLights() {
   // POINT LIGHT 1 (Red)
   pointLight1 = new THREE.PointLight(0xff0000, 1, 50000);
   pointLight1.position.set(150, 46, 400);
-  pointLight1.castShadow = true;
+  pointLight1.castShadow = false;
   pointLight1.shadow.mapSize.width = SHADOW_MAP_WIDTH;
   pointLight1.shadow.mapSize.height = SHADOW_MAP_HEIGHT;
   scene.add(pointLight1);
@@ -107,15 +107,15 @@ function addLights() {
   // POINT LIGHT 2 (Green)
   pointLight2 = new THREE.PointLight(0x00ff00, 1, 50000);
   pointLight2.position.set(35, 46, 400);
-  pointLight2.castShadow = true;
+  pointLight2.castShadow = false;
   pointLight2.shadow.mapSize.width = SHADOW_MAP_WIDTH;
   pointLight2.shadow.mapSize.height = SHADOW_MAP_HEIGHT;
   scene.add(pointLight2);
 
   // SPOTLIGHT (Blue)
   spotlight = new THREE.SpotLight(0x0000ff, 2500, 1000, 0.59, 0.2, 0);
-  spotlight.position.set(0, 730, 0);
-  spotlight.castShadow = true;
+  spotlight.position.set(0, 559, 0);
+  spotlight.castShadow = false;
   spotlight.shadow.mapSize.width = SHADOW_MAP_WIDTH;
   spotlight.shadow.mapSize.height = SHADOW_MAP_HEIGHT;
   scene.add(spotlight);
@@ -156,6 +156,7 @@ function createGUI() {
   // Directional Light Controls
   const directionalLightFolder = gui.addFolder("Directional Light");
   directionalLightFolder.add(directionalLight, "visible").name("Toggle Light");
+  directionalLightFolder.add(directionalLight, "castShadow").name("Cast Shadow");
   directionalLightFolder.add(directionalLight.position, "x", -2000, 2000).name("Position X");
   directionalLightFolder.add(directionalLight.position, "y", 0, 3000).name("Position Y");
   directionalLightFolder.add(directionalLight.position, "z", -2000, 2000).name("Position Z");
@@ -187,24 +188,25 @@ function createGUI() {
 
   // Point Light 1 Controls
   const pointLight1Folder = gui.addFolder("Red Point Light");
+  pointLight1Folder.add(pointLight1, "castShadow").name("Cast Shadow");
   pointLight1Folder.add(pointLight1.position, "x", -2000, 2000).name("Position X");
   pointLight1Folder.add(pointLight1.position, "y", -1000, 3000).name("Position Y");
   pointLight1Folder.add(pointLight1.position, "z", -2000, 2000).name("Position Z");
   pointLight1Folder.add(pointLight1, "intensity", 0, 100000).name("Intensity");
   pointLight1Folder.addColor({ color: pointLight1.color.getHex() }, "color").name("Light Color");
-  pointLight1Folder.add(pointLight1, "castShadow").name("Cast Shadow");
 
   // Point Light 2 Controls
   const pointLight2Folder = gui.addFolder("Green Point Light");
+  pointLight2Folder.add(pointLight2, "castShadow").name("Cast Shadow");
   pointLight2Folder.add(pointLight2.position, "x", -2000, 2000).name("Position X");
   pointLight2Folder.add(pointLight2.position, "y", -1000, 3000).name("Position Y");
   pointLight2Folder.add(pointLight2.position, "z", -2000, 2000).name("Position Z");
   pointLight2Folder.add(pointLight2, "intensity", 0, 100000).name("Intensity");
   pointLight2Folder.addColor({ color: pointLight2.color.getHex() }, "color").name("Light Color");
-  pointLight2Folder.add(pointLight2, "castShadow").name("Cast Shadow");
 
   // Spotlight Controls
   const spotlightFolder = gui.addFolder("Blue Spotlight");
+  spotlightFolder.add(spotlight, "castShadow").name("Cast Shadow");
   spotlightFolder.add(spotlight.position, "x", -2000, 2000).name("Position X");
   spotlightFolder.add(spotlight.position, "y", -1000, 3000).name("Position Y");
   spotlightFolder.add(spotlight.position, "z", -2000, 2000).name("Position Z");
