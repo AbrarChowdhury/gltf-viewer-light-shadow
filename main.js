@@ -5,12 +5,12 @@ import { FirstPersonControls } from "three/addons/controls/FirstPersonControls.j
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
 import { addLights, createHUD } from "./lights";
 import addGUI from "./controls"
+import { onKeyDown, onMouseDown, onWindowResize } from "./eventHandlers";
 
 
 
 const clock = new THREE.Clock();
-let showHUD = false;
-let middleMouseDown = false;
+
 
 init();
 
@@ -55,29 +55,12 @@ function init() {
   // Event Listeners
   window.addEventListener("resize", onWindowResize);
   window.addEventListener("keydown", onKeyDown);
+  window.addEventListener("mousedown", onMouseDown)
 }
 
 
 
 
-function onWindowResize() {
-  SCREEN_WIDTH = window.innerWidth
-  SCREEN_HEIGHT = window.innerHeight
-
-  camera.aspect = SCREEN_WIDTH / SCREEN_HEIGHT
-  camera.updateProjectionMatrix()
-
-  renderer.setSize(SCREEN_WIDTH, SCREEN_HEIGHT)
-  controls.handleResize()
-}
-
-function onKeyDown(event) {
-  switch (event.keyCode) {
-    case 84: // T key
-      showHUD = !showHUD
-      break
-  }
-}
 
 
 
@@ -151,13 +134,8 @@ function createScene() {
 }
 
 
-window.addEventListener("mousedown", onMouseDown)
-function onMouseDown(event) {
-  if (event.button === 1) {
-    console.log("mouse D")
-    middleMouseDown = !middleMouseDown
-  }
-}
+
+
 function animate() {
   render()
   stats.update()
