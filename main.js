@@ -1,8 +1,8 @@
 import "./style.css";
 import * as THREE from "three";
 import Stats from "three/addons/libs/stats.module.js";
-import { FirstPersonControls } from "three/addons/controls/FirstPersonControls.js";
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
+import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { addLights, createHUD } from "./lights";
 import addGUI from "./controls"
 import { onKeyDown, onMouseDown, onWindowResize } from "./eventHandlers";
@@ -42,11 +42,8 @@ function init() {
   renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 
   // CONTROLS
-  controls = new FirstPersonControls(camera, renderer.domElement);
-  controls.lookSpeed = 0.02;
-  controls.movementSpeed = 100;
-  controls.lookVertical = true;
-  controls.lookAt(scene.position);
+  controls = new OrbitControls(camera, renderer.domElement);
+  
 
   // STATS
   stats = new Stats();
@@ -156,7 +153,7 @@ function render() {
     }
   }
 
-  if (!middleMouseDown) {
+  if (!middleMouseDown||useOrbitControls) {
     controls.update(delta)
   }
 
