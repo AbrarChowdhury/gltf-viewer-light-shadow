@@ -77,23 +77,23 @@ function createScene() {
   scene.add(ground)
 
   // CUBES
-  const cubeMaterial = new THREE.MeshPhongMaterial({ color: 0xffdd99 })
-  for (let i = 0; i < 10; i++) {
-    const cube = new THREE.Mesh(
-      new THREE.BoxGeometry(100, 100, 100),
-      cubeMaterial
-    )
-    cube.position.set(
-      Math.random() * 2000 - 1000,
-      FLOOR + 200,
-      Math.random() * 2000 - 1000
-    )
+  // const cubeMaterial = new THREE.MeshPhongMaterial({ color: 0xffdd99 })
+  // for (let i = 0; i < 10; i++) {
+  //   const cube = new THREE.Mesh(
+  //     new THREE.BoxGeometry(100, 100, 100),
+  //     cubeMaterial
+  //   )
+  //   cube.position.set(
+  //     Math.random() * 2000 - 1000,
+  //     FLOOR + 200,
+  //     Math.random() * 2000 - 1000
+  //   )
 
-    cube.castShadow = true
-    cube.receiveShadow = true
+  //   cube.castShadow = true
+  //   cube.receiveShadow = true
 
-    scene.add(cube)
-  }
+  //   scene.add(cube)
+  // }
 
   // MORPHS
   mixer = new THREE.AnimationMixer(scene)
