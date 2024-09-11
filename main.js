@@ -91,40 +91,6 @@ function createScene() {
   ground.receiveShadow = true
 
   scene.add(ground)
-
-  // // MORPHS
-  // mixer = new THREE.AnimationMixer(scene)
-
-  // const gltfloader = new GLTFLoader()
-  // gltfloader.load("lady.glb", function (gltf) {
-  //   gltf.scene.traverse(function (node) {
-  //     if (node.isMesh) {
-  //       node.castShadow = true
-  //       node.receiveShadow = true
-  //     }
-  //   })
-  //   // "Ch22_Body" body
-  //   // "Ch22_Hair" hair
-  //   // "Ch22_Pants" pants
-  //   // "Ch22_Shirt"
-  //   // "Ch22_Sneakers"
-  //   lady = gltf.scene.children[0]
-  //   // roughness
-  //   lady.getObjectByName("Ch22_Hair").material.roughness = 0.7
-  //   lady.getObjectByName("Ch22_Body").material.roughness = 50
-  //   lady.scale.set(200, 200, 200)
-  //   lady.position.set(0, FLOOR, 300)
-  //   lady.rotation.z = 5.6
-  //   console.log(lady)
-  //   scene.add(gltf.scene)
-  //   const animations = gltf.animations
-  //   animations.forEach((clip) => {
-  //     if (clip.name === "arguing") {
-  //       mixer.clipAction(clip).setLoop(THREE.LoopRepeat).play()
-  //     }
-  //   })
-  //   addGUI()
-  // })
 }
 
 function animate() {
@@ -136,16 +102,6 @@ function render() {
   const delta = clock.getDelta()
 
   mixer?.update(delta)
-
-  for (let i = 0; i < morphs.length; i++) {
-    const morph = morphs[i]
-
-    morph.position.x += morph.speed * delta
-
-    if (morph.position.x > 2000) {
-      morph.position.x = -1000 - Math.random() * 500
-    }
-  }
 
   if (!middleMouseDown || useOrbitControls) {
     controls.update(delta)
@@ -160,26 +116,42 @@ function render() {
   }
 }
 
-
-// Function to load and display the model
 function loadModel(gltf) {
   gltf.scene.traverse(function (node) {
     if (node.isMesh) {
-      node.castShadow = true;
-      node.receiveShadow = true;
+      node.castShadow = true
+      node.receiveShadow = true
     }
-  });
+  })
 
-  const model = gltf.scene;
-  model.scale.set(200, 200, 200); // Adjust scale if necessary
-  model.position.set(0, FLOOR, 300); // Adjust position
-  scene.add(model);
-  
+  model = gltf.scene
+  model.scale.set(
+    modelTransform.scaleX,
+    modelTransform.scaleY,
+    modelTransform.scaleZ
+  )
+  model.position.set(
+    modelTransform.posX,
+    modelTransform.posY,
+    modelTransform.posZ
+  )
+  model.rotation.set(
+    modelTransform.rotX,
+    modelTransform.rotY,
+    modelTransform.rotZ
+  )
+  scene.add(model)
+
   // Add animations if present
   if (gltf.animations.length > 0) {
-    mixer = new THREE.AnimationMixer(model);
-    const action = mixer.clipAction(gltf.animations[0]);
-    action.play();
+    mixer = new THREE.AnimationMixer(model)
+    animations = gltf.animations // Store animations
+
+    // Play the first animation by default
+    activeAction = mixer.clipAction(animations[0])
+    activeAction.play()
+
+    currentAnimation = animations[0].name
   }
 
   addGUI()

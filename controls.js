@@ -1,4 +1,4 @@
-import { GUI } from "dat.gui";
+import { GUI } from "dat.gui"
 function addGUI() {
   const gui = new GUI()
   // Directional Light Controls
@@ -109,15 +109,99 @@ function addGUI() {
     .name("Light Color")
     .onChange((val) => ambient.color.setHex(val))
 
-  // // The model
-  // const modelFolder = gui.addFolder("Model")
-  // console.log("gui: ", lady)
-  // modelFolder.add(lady.rotation, "z", 0, Math.PI * 2, 0.1).name("Z Rotation")
+  // ANIMATIONS
+  const animationFolder = gui.addFolder("Animations")
+
+  // Create dropdown for animations
+  const animationNames = animations.map((animation) => animation.name)
+  const animationController = animationFolder.add(
+    { animation: currentAnimation },
+    "animation",
+    animationNames
+  )
+
+  animationController.onChange((selectedAnimation) => {
+    // Switch to selected animation
+    switchAnimation(selectedAnimation)
+  })
+
+  const transformFolder = gui.addFolder("Transform")
+
+  // Scale controls
+  transformFolder
+    .add(modelTransform, "scaleX", 50, 500)
+    .name("Scale X")
+    .onChange(() => updateModelTransform(model))
+  transformFolder
+    .add(modelTransform, "scaleY", 50, 500)
+    .name("Scale Y")
+    .onChange(() => updateModelTransform(model))
+  transformFolder
+    .add(modelTransform, "scaleZ", 50, 500)
+    .name("Scale Z")
+    .onChange(() => updateModelTransform(model))
+
+  // Position controls
+  transformFolder
+    .add(modelTransform, "posX", -1000, 1000)
+    .name("Position X")
+    .onChange(() => updateModelTransform(model))
+  transformFolder
+    .add(modelTransform, "posY", -500, 500)
+    .name("Position Y")
+    .onChange(() => updateModelTransform(model))
+  transformFolder
+    .add(modelTransform, "posZ", -1000, 1000)
+    .name("Position Z")
+    .onChange(() => updateModelTransform(model))
+
+  // Rotation controls
+  transformFolder
+    .add(modelTransform, "rotX", -Math.PI, Math.PI)
+    .name("Rotation X")
+    .onChange(() => updateModelTransform(model))
+  transformFolder
+    .add(modelTransform, "rotY", -Math.PI, Math.PI)
+    .name("Rotation Y")
+    .onChange(() => updateModelTransform(model))
+  transformFolder
+    .add(modelTransform, "rotZ", -Math.PI, Math.PI)
+    .name("Rotation Z")
+    .onChange(() => updateModelTransform(model))
+}
+
+function updateModelTransform(model) {
+  model.scale.set(
+    modelTransform.scaleX,
+    modelTransform.scaleY,
+    modelTransform.scaleZ
+  )
+  model.position.set(
+    modelTransform.posX,
+    modelTransform.posY,
+    modelTransform.posZ
+  )
+  model.rotation.set(
+    modelTransform.rotX,
+    modelTransform.rotY,
+    modelTransform.rotZ
+  )
 }
 function updateShadowMap() {
   directionalLight.shadow.mapSize.width = SHADOW_MAP_WIDTH
   directionalLight.shadow.mapSize.height = SHADOW_MAP_HEIGHT
   directionalLight.shadow.map.dispose() // Dispose previous shadow map
   directionalLight.shadow.map = null // Set map to null to trigger reallocation
+}
+
+function switchAnimation(animationName) {
+  if (activeAction) {
+    activeAction.stop() // Stop the current animation
+  }
+  const selectedAnimation = animations.find(
+    (clip) => clip.name === animationName
+  )
+  activeAction = mixer.clipAction(selectedAnimation)
+  activeAction.play()
 }
 export default addGUI
