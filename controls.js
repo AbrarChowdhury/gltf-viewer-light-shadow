@@ -1,8 +1,6 @@
 import { GUI } from "dat.gui";
 function addGUI() {
   const gui = new GUI()
-  console.log("gui", directionalLight)
-  
   // Directional Light Controls
   const directionalLightFolder = gui.addFolder("Directional Light")
   directionalLightFolder.add(directionalLight, "visible").name("Toggle Light")
@@ -111,10 +109,10 @@ function addGUI() {
     .name("Light Color")
     .onChange((val) => ambient.color.setHex(val))
 
-  // The model
-  const modelFolder = gui.addFolder("Model")
-  console.log("gui: ", lady)
-  modelFolder.add(lady.rotation, "z", 0, Math.PI * 2, 0.1).name("Z Rotation")
+  // // The model
+  // const modelFolder = gui.addFolder("Model")
+  // console.log("gui: ", lady)
+  // modelFolder.add(lady.rotation, "z", 0, Math.PI * 2, 0.1).name("Z Rotation")
 }
 function updateShadowMap() {
   directionalLight.shadow.mapSize.width = SHADOW_MAP_WIDTH

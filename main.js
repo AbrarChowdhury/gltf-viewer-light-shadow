@@ -1,65 +1,81 @@
-import "./style.css";
-import * as THREE from "three";
-import Stats from "three/addons/libs/stats.module.js";
-import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js";
-import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import { addLights, createHUD } from "./lights";
+import "./style.css"
+import * as THREE from "three"
+import Stats from "three/addons/libs/stats.module.js"
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js"
+import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js"
+import { addLights, createHUD } from "./lights"
 import addGUI from "./controls"
-import { onKeyDown, onMouseDown, onWindowResize } from "./eventHandlers";
+import { onKeyDown, onMouseDown, onWindowResize } from "./eventHandlers"
 
+const clock = new THREE.Clock()
 
-
-const clock = new THREE.Clock();
-
-
-init();
+init()
 
 function init() {
-  container = document.createElement("div");
-  document.body.appendChild(container);
+  container = document.createElement("div")
+  document.body.appendChild(container)
 
   // CAMERA
-  camera = new THREE.PerspectiveCamera(23, SCREEN_WIDTH / SCREEN_HEIGHT, NEAR, FAR);
-  camera.position.set(700, 50, 1900);
+  camera = new THREE.PerspectiveCamera(
+    23,
+    SCREEN_WIDTH / SCREEN_HEIGHT,
+    NEAR,
+    FAR
+  )
+  camera.position.set(700, 50, 1900)
 
   // SCENE
-  scene = new THREE.Scene();
-  scene.background = new THREE.Color(0x808080);
-  scene.fog = new THREE.Fog(0x808080, 1000, FAR);
-  addLights(scene);
-  createHUD();
-  createScene();
+  scene = new THREE.Scene()
+  scene.background = new THREE.Color(0x808080)
+  scene.fog = new THREE.Fog(0x808080, 1000, FAR)
+  addLights(scene)
+  createHUD()
+  createScene()
 
   // RENDERER
-  renderer = new THREE.WebGLRenderer({ antialias: true });
-  renderer.setPixelRatio(window.devicePixelRatio);
-  renderer.setSize(SCREEN_WIDTH, SCREEN_HEIGHT);
-  renderer.setAnimationLoop(animate);
-  container.appendChild(renderer.domElement);
+  renderer = new THREE.WebGLRenderer({ antialias: true })
+  renderer.setPixelRatio(window.devicePixelRatio)
+  renderer.setSize(SCREEN_WIDTH, SCREEN_HEIGHT)
+  renderer.setAnimationLoop(animate)
+  container.appendChild(renderer.domElement)
 
-  renderer.autoClear = false;
-  renderer.shadowMap.enabled = true;
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+  renderer.autoClear = false
+  renderer.shadowMap.enabled = true
+  renderer.shadowMap.type = THREE.PCFSoftShadowMap
 
   // CONTROLS
-  controls = new OrbitControls(camera, renderer.domElement);
-  
+  controls = new OrbitControls(camera, renderer.domElement)
 
   // STATS
-  stats = new Stats();
-  container.appendChild(stats.dom);
+  stats = new Stats()
+  container.appendChild(stats.dom)
 
   // Event Listeners
-  window.addEventListener("resize", onWindowResize);
-  window.addEventListener("keydown", onKeyDown);
+  window.addEventListener("resize", onWindowResize)
+  window.addEventListener("keydown", onKeyDown)
   window.addEventListener("mousedown", onMouseDown)
+  // Drag and Drop File Upload Setup
+  window.addEventListener("dragover", function (event) {
+    event.preventDefault()
+    event.dataTransfer.dropEffect = "copy"
+  })
+
+  window.addEventListener("drop", function (event) {
+    event.preventDefault()
+    if (event.dataTransfer.files.length > 0) {
+      const file = event.dataTransfer.files[0]
+      const reader = new FileReader()
+      reader.onload = function (e) {
+        const arrayBuffer = e.target.result
+        const loader = new GLTFLoader()
+        loader.parse(arrayBuffer, "", function (gltf) {
+          loadModel(gltf)
+        })
+      }
+      reader.readAsArrayBuffer(file)
+    }
+  })
 }
-
-
-
-
-
-
 
 function createScene() {
   // GROUND
@@ -76,62 +92,40 @@ function createScene() {
 
   scene.add(ground)
 
-  // CUBES
-  // const cubeMaterial = new THREE.MeshPhongMaterial({ color: 0xffdd99 })
-  // for (let i = 0; i < 10; i++) {
-  //   const cube = new THREE.Mesh(
-  //     new THREE.BoxGeometry(100, 100, 100),
-  //     cubeMaterial
-  //   )
-  //   cube.position.set(
-  //     Math.random() * 2000 - 1000,
-  //     FLOOR + 200,
-  //     Math.random() * 2000 - 1000
-  //   )
+  // // MORPHS
+  // mixer = new THREE.AnimationMixer(scene)
 
-  //   cube.castShadow = true
-  //   cube.receiveShadow = true
-
-  //   scene.add(cube)
-  // }
-
-  // MORPHS
-  mixer = new THREE.AnimationMixer(scene)
-
-  const gltfloader = new GLTFLoader()
-  gltfloader.load("lady.glb", function (gltf) {
-    gltf.scene.traverse(function (node) {
-      if (node.isMesh) {
-        node.castShadow = true
-        node.receiveShadow = true
-      }
-    })
-    // "Ch22_Body" body
-    // "Ch22_Hair" hair
-    // "Ch22_Pants" pants
-    // "Ch22_Shirt"
-    // "Ch22_Sneakers"
-    lady = gltf.scene.children[0]
-    // roughness
-    lady.getObjectByName("Ch22_Hair").material.roughness = 0.7
-    lady.getObjectByName("Ch22_Body").material.roughness = 50
-    lady.scale.set(200, 200, 200)
-    lady.position.set(0, FLOOR, 300)
-    lady.rotation.z = 5.6
-    console.log(lady)
-    scene.add(gltf.scene)
-    const animations = gltf.animations
-    animations.forEach((clip) => {
-      if (clip.name === "arguing") {
-        mixer.clipAction(clip).setLoop(THREE.LoopRepeat).play()
-      }
-    })
-    addGUI()
-  })
+  // const gltfloader = new GLTFLoader()
+  // gltfloader.load("lady.glb", function (gltf) {
+  //   gltf.scene.traverse(function (node) {
+  //     if (node.isMesh) {
+  //       node.castShadow = true
+  //       node.receiveShadow = true
+  //     }
+  //   })
+  //   // "Ch22_Body" body
+  //   // "Ch22_Hair" hair
+  //   // "Ch22_Pants" pants
+  //   // "Ch22_Shirt"
+  //   // "Ch22_Sneakers"
+  //   lady = gltf.scene.children[0]
+  //   // roughness
+  //   lady.getObjectByName("Ch22_Hair").material.roughness = 0.7
+  //   lady.getObjectByName("Ch22_Body").material.roughness = 50
+  //   lady.scale.set(200, 200, 200)
+  //   lady.position.set(0, FLOOR, 300)
+  //   lady.rotation.z = 5.6
+  //   console.log(lady)
+  //   scene.add(gltf.scene)
+  //   const animations = gltf.animations
+  //   animations.forEach((clip) => {
+  //     if (clip.name === "arguing") {
+  //       mixer.clipAction(clip).setLoop(THREE.LoopRepeat).play()
+  //     }
+  //   })
+  //   addGUI()
+  // })
 }
-
-
-
 
 function animate() {
   render()
@@ -141,7 +135,7 @@ function animate() {
 function render() {
   const delta = clock.getDelta()
 
-  mixer.update(delta)
+  mixer?.update(delta)
 
   for (let i = 0; i < morphs.length; i++) {
     const morph = morphs[i]
@@ -153,7 +147,7 @@ function render() {
     }
   }
 
-  if (!middleMouseDown||useOrbitControls) {
+  if (!middleMouseDown || useOrbitControls) {
     controls.update(delta)
   }
 
@@ -164,4 +158,29 @@ function render() {
   if (showHUD) {
     lightShadowMapViewer.render(renderer)
   }
+}
+
+
+// Function to load and display the model
+function loadModel(gltf) {
+  gltf.scene.traverse(function (node) {
+    if (node.isMesh) {
+      node.castShadow = true;
+      node.receiveShadow = true;
+    }
+  });
+
+  const model = gltf.scene;
+  model.scale.set(200, 200, 200); // Adjust scale if necessary
+  model.position.set(0, FLOOR, 300); // Adjust position
+  scene.add(model);
+  
+  // Add animations if present
+  if (gltf.animations.length > 0) {
+    mixer = new THREE.AnimationMixer(model);
+    const action = mixer.clipAction(gltf.animations[0]);
+    action.play();
+  }
+
+  addGUI()
 }
