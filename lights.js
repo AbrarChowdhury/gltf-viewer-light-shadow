@@ -24,6 +24,21 @@ function addLights(scene) {
     directionalLight.shadow.mapSize.width = SHADOW_MAP_WIDTH;
     directionalLight.shadow.mapSize.height = SHADOW_MAP_HEIGHT;
     scene.add(directionalLight);
+
+    // DIRECTIONAL LIGHT
+    directionalLight2 = new THREE.DirectionalLight(0xddebff, 2.7);
+    directionalLight2.position.set(438, 1400, 620);
+    directionalLight2.castShadow = true;
+    directionalLight2.shadow.camera.top = 2000;
+    directionalLight2.shadow.camera.bottom = -2000;
+    directionalLight2.shadow.camera.left = -2000;
+    directionalLight2.shadow.camera.right = 2000;
+    directionalLight2.shadow.camera.near = 1200;
+    directionalLight2.shadow.camera.far = 2500;
+    directionalLight2.shadow.bias = -0.01;
+    directionalLight2.shadow.mapSize.width = SHADOW_MAP_WIDTH;
+    directionalLight2.shadow.mapSize.height = SHADOW_MAP_HEIGHT;
+    scene.add(directionalLight2);
   
     // POINT LIGHT 1 (Red)
     pointLight1 = new THREE.PointLight(0xff0000, 1, 50000);

@@ -51,6 +51,56 @@ function addGUI() {
     .name("Light Color")
     .onChange((val) => directionalLight.color.setHex(val))
 
+   // Directional Light Controls
+   const directionalLightFolder2 = gui.addFolder("Directional Light 2")
+   directionalLightFolder2.add(directionalLight2, "visible").name("Toggle Light")
+   directionalLightFolder2.add(directionalLight2, "castShadow").name("Cast Shadow")
+   directionalLightFolder2
+     .add(directionalLight2.position, "x", -2000, 2000)
+     .name("Position X")
+   directionalLightFolder2
+     .add(directionalLight2.position, "y", 0, 3000)
+     .name("Position Y")
+   directionalLightFolder2
+     .add(directionalLight2.position, "z", -2000, 2000)
+     .name("Position Z")
+   directionalLightFolder2
+     .add(directionalLight2, "intensity", 0, 10)
+     .name("Intensity")
+   directionalLightFolder2
+     .add(directionalLight2.shadow.camera, "near", 0.1, 3000)
+     .name("Shadow Near")
+   directionalLightFolder2
+     .add(directionalLight2.shadow.camera, "far", 0.1, 5000)
+     .name("Shadow Far")
+   directionalLightFolder2
+     .add(directionalLight2.shadow.camera, "top", -3000, 3000)
+     .name("Shadow Top")
+   directionalLightFolder2
+     .add(directionalLight2.shadow.camera, "bottom", -3000, 3000)
+     .name("Shadow Bottom")
+   directionalLightFolder2
+     .add(directionalLight2.shadow.camera, "left", -3000, 3000)
+     .name("Shadow Left")
+   directionalLightFolder2
+     .add(directionalLight2.shadow.camera, "right", -3000, 3000)
+     .name("Shadow Right")
+   directionalLightFolder2
+     .add(directionalLight2.shadow, "bias", -0.01, 0.01)
+     .name("Shadow Bias")
+   directionalLightFolder2
+     .add(directionalLight2.shadow.mapSize, "width", 512, 8192)
+     .name("Shadow Map Width")
+     .onChange(updateShadowMap)
+   directionalLightFolder2
+     .add(directionalLight2.shadow.mapSize, "height", 512, 8192)
+     .name("Shadow Map Height")
+     .onChange(updateShadowMap)
+   directionalLightFolder2
+     .addColor({ color: directionalLight2.color.getHex() }, "color")
+     .name("Light Color")
+     .onChange((val) => directionalLight2.color.setHex(val))
+
   // Point Light 1 Controls
   const pointLight1Folder = gui.addFolder("Red Point Light")
   pointLight1Folder.add(pointLight1, "castShadow").name("Cast Shadow")
