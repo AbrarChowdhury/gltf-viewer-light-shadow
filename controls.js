@@ -39,13 +39,11 @@ function addGUI() {
     .add(directionalLight.shadow, "bias", -0.01, 0.01)
     .name("Shadow Bias")
   directionalLightFolder
-    .add(shadowMap, "width", 512, 8192)
+    .add(directionalLight.shadow.mapSize, "width", 512, 8192)
     .name("S-Map W")
-    .onChange((val)=>updateShadowMap(directionalLight,val))
   directionalLightFolder
-    .add(shadowMap, "height", 512, 8192)
+    .add(directionalLight.shadow.mapSize, "height", 512, 8192)
     .name("S-Map H")
-    .onChange(updateShadowMap)
   directionalLightFolder
     .addColor({ color: directionalLight.color.getHex() }, "color")
     .name("Light Color")
@@ -90,12 +88,10 @@ function addGUI() {
      .name("Shadow Bias")
    directionalLightFolder2
      .add(directionalLight2.shadow.mapSize, "width", 512, 8192)
-     .name("Shadow Map Width")
-     .onChange(updateShadowMap)
+     .name("S-Map Width")
    directionalLightFolder2
      .add(directionalLight2.shadow.mapSize, "height", 512, 8192)
-     .name("Shadow Map Height")
-     .onChange(updateShadowMap)
+     .name("S-Map Height")
    directionalLightFolder2
      .addColor({ color: directionalLight2.color.getHex() }, "color")
      .name("Light Color")
