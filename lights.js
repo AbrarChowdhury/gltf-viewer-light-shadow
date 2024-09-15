@@ -1,8 +1,7 @@
 import * as THREE from "three";
 import { ShadowMapViewer } from "three/addons/utils/ShadowMapViewer.js";
 
-const SHADOW_MAP_WIDTH = 4096,
-  SHADOW_MAP_HEIGHT = 4096;
+
 
 
 function addLights(scene) {

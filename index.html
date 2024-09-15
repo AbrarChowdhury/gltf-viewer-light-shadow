@@ -8,7 +8,12 @@
   </head>
   <body>
     <script>
-      let directionalLight, directionalLight2, pointLight1, pointLight2, spotlight, ambient
+      let directionalLight,
+        directionalLight2,
+        pointLight1,
+        pointLight2,
+        spotlight,
+        ambient
       let lightShadowMapViewer
       let SCREEN_WIDTH, SCREEN_HEIGHT
       SCREEN_WIDTH = window.innerWidth
@@ -20,7 +25,13 @@
 
       const NEAR = 10,
         FAR = 3000
+      let SHADOW_MAP_WIDTH = 4096,
+        SHADOW_MAP_HEIGHT = 4096
 
+      let shadowMap = {
+        height: 4096,
+        width: 4096,
+      }
       let model
       let modelTransform = {
         scaleX: 200,

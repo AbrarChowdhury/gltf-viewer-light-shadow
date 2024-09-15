@@ -39,12 +39,12 @@ function addGUI() {
     .add(directionalLight.shadow, "bias", -0.01, 0.01)
     .name("Shadow Bias")
   directionalLightFolder
-    .add(directionalLight.shadow.mapSize, "width", 512, 8192)
-    .name("Shadow Map Width")
-    .onChange(updateShadowMap)
+    .add(shadowMap, "width", 512, 8192)
+    .name("S-Map W")
+    .onChange((val)=>updateShadowMap(directionalLight,val))
   directionalLightFolder
-    .add(directionalLight.shadow.mapSize, "height", 512, 8192)
-    .name("Shadow Map Height")
+    .add(shadowMap, "height", 512, 8192)
+    .name("S-Map H")
     .onChange(updateShadowMap)
   directionalLightFolder
     .addColor({ color: directionalLight.color.getHex() }, "color")
@@ -116,7 +116,7 @@ function addGUI() {
   pointLight1Folder.add(pointLight1, "intensity", 0, 100000).name("Intensity")
   pointLight1Folder
     .addColor({ color: pointLight1.color.getHex() }, "color")
-    .name("Light Color")
+    .name("Light Color").onChange((val) => pointLight1.color.setHex(val))
 
   // Point Light 2 Controls
   const pointLight2Folder = gui.addFolder("Green Point Light")
@@ -133,7 +133,7 @@ function addGUI() {
   pointLight2Folder.add(pointLight2, "intensity", 0, 100000).name("Intensity")
   pointLight2Folder
     .addColor({ color: pointLight2.color.getHex() }, "color")
-    .name("Light Color")
+    .name("Light Color").onChange((val) => pointLight2.color.setHex(val))
 
   // Spotlight Controls
   const spotlightFolder = gui.addFolder("Blue Spotlight")
@@ -148,7 +148,7 @@ function addGUI() {
   spotlightFolder.add(spotlight, "decay", 0, 2).name("Decay")
   spotlightFolder
     .addColor({ color: spotlight.color.getHex() }, "color")
-    .name("Light Color")
+    .name("Light Color").onChange((val) => spotlight.color.setHex(val))
 
   // Ambient Light Controls
   const ambientFolder = gui.addFolder("Ambient Light")
@@ -237,11 +237,12 @@ function updateModelTransform(model) {
     modelTransform.rotZ
   )
 }
-function updateShadowMap() {
-  directionalLight.shadow.mapSize.width = SHADOW_MAP_WIDTH
-  directionalLight.shadow.mapSize.height = SHADOW_MAP_HEIGHT
-  directionalLight.shadow.map.dispose() // Dispose previous shadow map
-  directionalLight.shadow.map = null // Set map to null to trigger reallocation
+function updateShadowMap(light, val) {
+  console.log("updating shadow map", val)
+  light.shadow.mapSize.width = shadowMap.width
+  light.shadow.mapSize.height = shadowMap.height
+  light.shadow.map?.dispose() // Dispose previous shadow map
+  light.shadow.map = null // Set map to null to trigger reallocation
 }
 
 function switchAnimation(animationName) {
