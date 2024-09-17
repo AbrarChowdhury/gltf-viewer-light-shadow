@@ -234,15 +234,24 @@ function addGUI() {
 
   // Scale controls
   transformFolder
-    .add(modelTransform, "scaleX", 50, 500)
+  .add(modelTransform, "scale", 0, 500)
+  .name("Scale")
+  .onChange(() => {
+    modelTransform.scaleX=modelTransform.scale
+    modelTransform.scaleY=modelTransform.scale
+    modelTransform.scaleZ=modelTransform.scale
+    updateModelTransform(model)
+  })
+  transformFolder
+    .add(modelTransform, "scaleX", 0, 500)
     .name("Scale X")
     .onChange(() => updateModelTransform(model))
   transformFolder
-    .add(modelTransform, "scaleY", 50, 500)
+    .add(modelTransform, "scaleY", 0, 500)
     .name("Scale Y")
     .onChange(() => updateModelTransform(model))
   transformFolder
-    .add(modelTransform, "scaleZ", 50, 500)
+    .add(modelTransform, "scaleZ", 0, 500)
     .name("Scale Z")
     .onChange(() => updateModelTransform(model))
 
