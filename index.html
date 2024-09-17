@@ -23,6 +23,9 @@
       let camera, controls, scene, renderer
       let container, stats
 
+      const fogParams = {
+        enableFog: true, 
+      }
       const NEAR = 10,
         FAR = 3000
       let SHADOW_MAP_WIDTH = 4096,
@@ -34,7 +37,7 @@
       }
       let model
       let modelTransform = {
-        scale:200,
+        scale: 200,
         scaleX: 200,
         scaleY: 200,
         scaleZ: 200,

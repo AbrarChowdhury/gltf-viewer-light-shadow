@@ -1,4 +1,6 @@
 import { GUI } from "dat.gui"
+import * as THREE from "three";
+
 function addGUI() {
   const gui = new GUI()
   // Directional Light Controls
@@ -55,7 +57,8 @@ function addGUI() {
     })
   directionalLightFolder
     .add(directionalLight.shadow, "bias", -1, 1)
-    .name("Shadow Bias").step(0.001)
+    .name("Shadow Bias")
+    .step(0.001)
     .onChange(() => {
       directionalLight.shadow.camera.updateProjectionMatrix()
     })
@@ -132,7 +135,8 @@ function addGUI() {
     })
   directionalLightFolder2
     .add(directionalLight2.shadow, "bias", -1, 1)
-    .name("Shadow Bias").step(0.001)
+    .name("Shadow Bias")
+    .step(0.001)
     .onChange(() => {
       directionalLight2.shadow.camera.updateProjectionMatrix()
     })
@@ -234,14 +238,14 @@ function addGUI() {
 
   // Scale controls
   transformFolder
-  .add(modelTransform, "scale", 0, 500)
-  .name("Scale")
-  .onChange(() => {
-    modelTransform.scaleX=modelTransform.scale
-    modelTransform.scaleY=modelTransform.scale
-    modelTransform.scaleZ=modelTransform.scale
-    updateModelTransform(model)
-  })
+    .add(modelTransform, "scale", 0, 500)
+    .name("Scale")
+    .onChange(() => {
+      modelTransform.scaleX = modelTransform.scale
+      modelTransform.scaleY = modelTransform.scale
+      modelTransform.scaleZ = modelTransform.scale
+      updateModelTransform(model)
+    })
   transformFolder
     .add(modelTransform, "scaleX", 0, 500)
     .name("Scale X")
@@ -282,6 +286,19 @@ function addGUI() {
     .add(modelTransform, "rotZ", -Math.PI, Math.PI)
     .name("Rotation Z")
     .onChange(() => updateModelTransform(model))
+
+  // Fog toggle
+  gui
+    .add(fogParams, "enableFog")
+    .name("Toggle Fog")
+    .onChange((value) => {
+      if (value) {
+        scene.fog = new THREE.Fog(0x808080, 1000, FAR)
+        // renderer.render(scene, camera);
+      } else {
+        scene.fog = null // Disable fog
+      }
+    })
 }
 
 function updateModelTransform(model) {
@@ -301,7 +318,6 @@ function updateModelTransform(model) {
     modelTransform.rotZ
   )
 }
-
 
 function switchAnimation(animationName) {
   if (activeAction) {
