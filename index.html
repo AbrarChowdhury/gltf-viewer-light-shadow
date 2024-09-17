@@ -8,7 +8,12 @@
   </head>
   <body>
     <script>
-      let directionalLight, pointLight1, pointLight2, spotlight, ambient
+      let directionalLight,
+        directionalLight2,
+        pointLight1,
+        pointLight2,
+        spotlight,
+        ambient
       let lightShadowMapViewer
       let SCREEN_WIDTH, SCREEN_HEIGHT
       SCREEN_WIDTH = window.innerWidth
@@ -20,14 +25,34 @@
 
       const NEAR = 10,
         FAR = 3000
+      let SHADOW_MAP_WIDTH = 4096,
+        SHADOW_MAP_HEIGHT = 4096
 
+      let shadowMap = {
+        height: 4096,
+        width: 4096,
+      }
+      let model
+      let modelTransform = {
+        scaleX: 200,
+        scaleY: 200,
+        scaleZ: 200,
+        posX: 0,
+        posY: FLOOR,
+        posZ: 0,
+        rotX: 0,
+        rotY: 0,
+        rotZ: 0,
+      }
       let mixer
-      let lady
-      const morphs = []
 
       let showHUD = false
       let middleMouseDown = false
-      let useOrbitControls = true; 
+      let useOrbitControls = true
+
+      let animations = []
+      let activeAction
+      let currentAnimation = ""
     </script>
     <script type="module" src="/main.js"></script>
   </body>
