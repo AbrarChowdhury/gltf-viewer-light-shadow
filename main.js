@@ -121,6 +121,7 @@ function loadModel(gltf) {
     if (node.isMesh) {
       node.castShadow = true
       node.receiveShadow = true
+      node.frustumCulled = false
     }
   })
 
