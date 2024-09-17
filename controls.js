@@ -20,82 +20,138 @@ function addGUI() {
   directionalLightFolder
     .add(directionalLight.shadow.camera, "near", 0.1, 3000)
     .name("Shadow Near")
+    .onChange(() => {
+      directionalLight.shadow.camera.updateProjectionMatrix()
+    })
   directionalLightFolder
     .add(directionalLight.shadow.camera, "far", 0.1, 5000)
     .name("Shadow Far")
+    .onChange(() => {
+      directionalLight.shadow.camera.updateProjectionMatrix()
+    })
   directionalLightFolder
     .add(directionalLight.shadow.camera, "top", -3000, 3000)
     .name("Shadow Top")
+    .onChange(() => {
+      directionalLight.shadow.camera.updateProjectionMatrix()
+    })
   directionalLightFolder
     .add(directionalLight.shadow.camera, "bottom", -3000, 3000)
     .name("Shadow Bottom")
+    .onChange(() => {
+      directionalLight.shadow.camera.updateProjectionMatrix()
+    })
   directionalLightFolder
     .add(directionalLight.shadow.camera, "left", -3000, 3000)
     .name("Shadow Left")
+    .onChange(() => {
+      directionalLight.shadow.camera.updateProjectionMatrix()
+    })
   directionalLightFolder
     .add(directionalLight.shadow.camera, "right", -3000, 3000)
     .name("Shadow Right")
+    .onChange(() => {
+      directionalLight.shadow.camera.updateProjectionMatrix()
+    })
   directionalLightFolder
-    .add(directionalLight.shadow, "bias", -0.01, 0.01)
-    .name("Shadow Bias")
+    .add(directionalLight.shadow, "bias", -1, 1)
+    .name("Shadow Bias").step(0.001)
+    .onChange(() => {
+      directionalLight.shadow.camera.updateProjectionMatrix()
+    })
   directionalLightFolder
     .add(directionalLight.shadow.mapSize, "width", 512, 8192)
     .name("S-Map W")
+    .onChange(() => {
+      directionalLight.shadow.camera.updateProjectionMatrix()
+    })
   directionalLightFolder
     .add(directionalLight.shadow.mapSize, "height", 512, 8192)
     .name("S-Map H")
+    .onChange(() => {
+      directionalLight.shadow.camera.updateProjectionMatrix()
+    })
   directionalLightFolder
     .addColor({ color: directionalLight.color.getHex() }, "color")
     .name("Light Color")
     .onChange((val) => directionalLight.color.setHex(val))
 
-   // Directional Light Controls
-   const directionalLightFolder2 = gui.addFolder("Directional Light 2")
-   directionalLightFolder2.add(directionalLight2, "visible").name("Toggle Light")
-   directionalLightFolder2.add(directionalLight2, "castShadow").name("Cast Shadow")
-   directionalLightFolder2
-     .add(directionalLight2.position, "x", -2000, 2000)
-     .name("Position X")
-   directionalLightFolder2
-     .add(directionalLight2.position, "y", 0, 3000)
-     .name("Position Y")
-   directionalLightFolder2
-     .add(directionalLight2.position, "z", -2000, 2000)
-     .name("Position Z")
-   directionalLightFolder2
-     .add(directionalLight2, "intensity", 0, 10)
-     .name("Intensity")
-   directionalLightFolder2
-     .add(directionalLight2.shadow.camera, "near", 0.1, 3000)
-     .name("Shadow Near")
-   directionalLightFolder2
-     .add(directionalLight2.shadow.camera, "far", 0.1, 5000)
-     .name("Shadow Far")
-   directionalLightFolder2
-     .add(directionalLight2.shadow.camera, "top", -3000, 3000)
-     .name("Shadow Top")
-   directionalLightFolder2
-     .add(directionalLight2.shadow.camera, "bottom", -3000, 3000)
-     .name("Shadow Bottom")
-   directionalLightFolder2
-     .add(directionalLight2.shadow.camera, "left", -3000, 3000)
-     .name("Shadow Left")
-   directionalLightFolder2
-     .add(directionalLight2.shadow.camera, "right", -3000, 3000)
-     .name("Shadow Right")
-   directionalLightFolder2
-     .add(directionalLight2.shadow, "bias", -0.01, 0.01)
-     .name("Shadow Bias")
-   directionalLightFolder2
-     .add(directionalLight2.shadow.mapSize, "width", 512, 8192)
-     .name("S-Map Width")
-   directionalLightFolder2
-     .add(directionalLight2.shadow.mapSize, "height", 512, 8192)
-     .name("S-Map Height")
-   directionalLightFolder2
-     .addColor({ color: directionalLight2.color.getHex() }, "color")
-     .name("Light Color")
-     .onChange((val) => directionalLight2.color.setHex(val))
+  // Directional Light Controls
+  const directionalLightFolder2 = gui.addFolder("Directional Light 2")
+  directionalLightFolder2.add(directionalLight2, "visible").name("Toggle Light")
+  directionalLightFolder2
+    .add(directionalLight2, "castShadow")
+    .name("Cast Shadow")
+  directionalLightFolder2
+    .add(directionalLight2.position, "x", -2000, 2000)
+    .name("Position X")
+  directionalLightFolder2
+    .add(directionalLight2.position, "y", 0, 3000)
+    .name("Position Y")
+  directionalLightFolder2
+    .add(directionalLight2.position, "z", -2000, 2000)
+    .name("Position Z")
+  directionalLightFolder2
+    .add(directionalLight2, "intensity", 0, 10)
+    .name("Intensity")
+  directionalLightFolder2
+    .add(directionalLight2.shadow.camera, "near", 0.1, 3000)
+    .name("Shadow Near")
+    .onChange(() => {
+      directionalLight2.shadow.camera.updateProjectionMatrix()
+    })
+  directionalLightFolder2
+    .add(directionalLight2.shadow.camera, "far", 0.1, 5000)
+    .name("Shadow Far")
+    .onChange(() => {
+      directionalLight2.shadow.camera.updateProjectionMatrix()
+    })
+  directionalLightFolder2
+    .add(directionalLight2.shadow.camera, "top", -3000, 3000)
+    .name("Shadow Top")
+    .onChange(() => {
+      directionalLight2.shadow.camera.updateProjectionMatrix()
+    })
+  directionalLightFolder2
+    .add(directionalLight2.shadow.camera, "bottom", -3000, 3000)
+    .name("Shadow Bottom")
+    .onChange(() => {
+      directionalLight2.shadow.camera.updateProjectionMatrix()
+    })
+  directionalLightFolder2
+    .add(directionalLight2.shadow.camera, "left", -3000, 3000)
+    .name("Shadow Left")
+    .onChange(() => {
+      directionalLight2.shadow.camera.updateProjectionMatrix()
+    })
+  directionalLightFolder2
+    .add(directionalLight2.shadow.camera, "right", -3000, 3000)
+    .name("Shadow Right")
+    .onChange(() => {
+      directionalLight2.shadow.camera.updateProjectionMatrix()
+    })
+  directionalLightFolder2
+    .add(directionalLight2.shadow, "bias", -1, 1)
+    .name("Shadow Bias").step(0.001)
+    .onChange(() => {
+      directionalLight2.shadow.camera.updateProjectionMatrix()
+    })
+  directionalLightFolder2
+    .add(directionalLight2.shadow.mapSize, "width", 512, 8192)
+    .name("S-Map Width")
+    .onChange(() => {
+      directionalLight2.shadow.camera.updateProjectionMatrix()
+    })
+  directionalLightFolder2
+    .add(directionalLight2.shadow.mapSize, "height", 512, 8192)
+    .name("S-Map Height")
+    .onChange(() => {
+      directionalLight2.shadow.camera.updateProjectionMatrix()
+    })
+  directionalLightFolder2
+    .addColor({ color: directionalLight2.color.getHex() }, "color")
+    .name("Light Color")
+    .onChange((val) => directionalLight2.color.setHex(val))
 
   // Point Light 1 Controls
   const pointLight1Folder = gui.addFolder("Red Point Light")
@@ -112,7 +168,8 @@ function addGUI() {
   pointLight1Folder.add(pointLight1, "intensity", 0, 100000).name("Intensity")
   pointLight1Folder
     .addColor({ color: pointLight1.color.getHex() }, "color")
-    .name("Light Color").onChange((val) => pointLight1.color.setHex(val))
+    .name("Light Color")
+    .onChange((val) => pointLight1.color.setHex(val))
 
   // Point Light 2 Controls
   const pointLight2Folder = gui.addFolder("Green Point Light")
@@ -129,7 +186,8 @@ function addGUI() {
   pointLight2Folder.add(pointLight2, "intensity", 0, 100000).name("Intensity")
   pointLight2Folder
     .addColor({ color: pointLight2.color.getHex() }, "color")
-    .name("Light Color").onChange((val) => pointLight2.color.setHex(val))
+    .name("Light Color")
+    .onChange((val) => pointLight2.color.setHex(val))
 
   // Spotlight Controls
   const spotlightFolder = gui.addFolder("Blue Spotlight")
@@ -144,7 +202,8 @@ function addGUI() {
   spotlightFolder.add(spotlight, "decay", 0, 2).name("Decay")
   spotlightFolder
     .addColor({ color: spotlight.color.getHex() }, "color")
-    .name("Light Color").onChange((val) => spotlight.color.setHex(val))
+    .name("Light Color")
+    .onChange((val) => spotlight.color.setHex(val))
 
   // Ambient Light Controls
   const ambientFolder = gui.addFolder("Ambient Light")
@@ -233,13 +292,7 @@ function updateModelTransform(model) {
     modelTransform.rotZ
   )
 }
-function updateShadowMap(light, val) {
-  console.log("updating shadow map", val)
-  light.shadow.mapSize.width = shadowMap.width
-  light.shadow.mapSize.height = shadowMap.height
-  light.shadow.map?.dispose() // Dispose previous shadow map
-  light.shadow.map = null // Set map to null to trigger reallocation
-}
+
 
 function switchAnimation(animationName) {
   if (activeAction) {
