@@ -9,7 +9,7 @@ import { onKeyDown, onMouseDown, onWindowResize } from "./eventHandlers"
 import createInfoCard from "./infoCard"
 
 const clock = new THREE.Clock()
-
+let newGltfLoaded = false
 init()
 
 function init() {
@@ -158,7 +158,7 @@ function loadModel(gltf) {
 
     // Choose a random animation from the list
     const randomIndex = Math.floor(Math.random() * animations.length)
-    const randomAnimation = animations[randomIndex]
+    const randomAnimation = animations[newGltfLoaded?randomIndex:1]
 
     // Play the randomly selected animation
     activeAction = mixer.clipAction(randomAnimation)
@@ -167,6 +167,6 @@ function loadModel(gltf) {
     // Store the name of the current animation
     currentAnimation = randomAnimation.name
   }
-
+  newGltfLoaded = true
   addGUI()
 }
