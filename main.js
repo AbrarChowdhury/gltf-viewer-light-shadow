@@ -6,6 +6,7 @@ import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js"
 import { addLights, createHUD } from "./lights"
 import addGUI from "./controls"
 import { onKeyDown, onMouseDown, onWindowResize } from "./eventHandlers"
+import createInfoCard from "./infoCard"
 
 const clock = new THREE.Clock()
 
@@ -31,7 +32,7 @@ function init() {
   addLights(scene)
   createHUD()
   createScene()
-
+  createInfoCard()
   // RENDERER
   renderer = new THREE.WebGLRenderer({ antialias: true })
   renderer.setPixelRatio(window.devicePixelRatio)
@@ -50,6 +51,10 @@ function init() {
   stats = new Stats()
   container.appendChild(stats.dom)
 
+  const loader = new GLTFLoader()
+  loader.load("lady.glb", function (gltf) {
+    loadModel(gltf)
+  })
   // Event Listeners
   window.addEventListener("resize", onWindowResize)
   window.addEventListener("keydown", onKeyDown)
@@ -69,6 +74,9 @@ function init() {
         const arrayBuffer = e.target.result
         const loader = new GLTFLoader()
         loader.parse(arrayBuffer, "", function (gltf) {
+          if (model) {
+            scene.remove(model)
+          }
           loadModel(gltf)
         })
       }
@@ -148,11 +156,16 @@ function loadModel(gltf) {
     mixer = new THREE.AnimationMixer(model)
     animations = gltf.animations // Store animations
 
-    // Play the first animation by default
-    activeAction = mixer.clipAction(animations[0])
+    // Choose a random animation from the list
+    const randomIndex = Math.floor(Math.random() * animations.length)
+    const randomAnimation = animations[randomIndex]
+
+    // Play the randomly selected animation
+    activeAction = mixer.clipAction(randomAnimation)
     activeAction.play()
 
-    currentAnimation = animations[0].name
+    // Store the name of the current animation
+    currentAnimation = randomAnimation.name
   }
 
   addGUI()
