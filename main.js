@@ -3,7 +3,7 @@ import * as THREE from "three"
 import Stats from "three/addons/libs/stats.module.js"
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js"
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js"
-import { addLights, createHUD } from "./lights"
+import { addLights, createHUD, updateLightHelpers } from "./lights"
 import addGUI from "./controls"
 import { onKeyDown, onMouseDown, onWindowResize } from "./eventHandlers"
 import createInfoCard from "./infoCard"
@@ -122,6 +122,7 @@ function render() {
   if (showHUD) {
     lightShadowMapViewer.render(renderer)
   }
+  updateLightHelpers()
 }
 
 function loadModel(gltf) {
