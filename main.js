@@ -149,6 +149,10 @@ function loadModel(gltf) {
     modelTransform.rotY,
     modelTransform.rotZ
   )
+  if(!newGltfLoaded){
+    model.getObjectByName("Ch22_Hair").material.roughness=0.7
+    model.getObjectByName("Ch22_Body").material.roughness=50
+  }
   scene.add(model)
 
   // Add animations if present
