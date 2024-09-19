@@ -1,12 +1,38 @@
 import { GUI } from "dat.gui"
-import * as THREE from "three";
+import * as THREE from "three"
 
 function addGUI() {
   const gui = new GUI()
+
+  // Fog toggle
+  gui
+    .add(fogParams, "enableFog")
+    .name("Fog On")
+    .onChange((value) => {
+      if (value) {
+        scene.fog = new THREE.Fog(0x808080, 1000, FAR)
+        // renderer.render(scene, camera);
+      } else {
+        scene.fog = null // Disable fog
+      }
+    })
+
+  // Ambient Light Controls
+  const ambientFolder = gui.addFolder("Ambient Light")
+  ambientFolder.add(ambient, "visible").name("Light On")
+  ambientFolder.add(ambient, "intensity", 0, 10).name("Intensity")
+  ambientFolder
+    .addColor({ color: ambient.color.getHex() }, "color")
+    .name("Light Color")
+    .onChange((val) => ambient.color.setHex(val))
+
   // Directional Light Controls
   const directionalLightFolder = gui.addFolder("Directional Light")
-  directionalLightFolder.add(directionalLight, "visible").name("Toggle Light")
+  directionalLightFolder.add(directionalLight, "visible").name("Light On")
   directionalLightFolder.add(directionalLight, "castShadow").name("Cast Shadow")
+  directionalLightFolder
+    .add(directionalLight, "intensity", 0, 10)
+    .name("Intensity")
   directionalLightFolder
     .add(directionalLight.position, "x", -2000, 2000)
     .name("Position X")
@@ -16,9 +42,6 @@ function addGUI() {
   directionalLightFolder
     .add(directionalLight.position, "z", -2000, 2000)
     .name("Position Z")
-  directionalLightFolder
-    .add(directionalLight, "intensity", 0, 10)
-    .name("Intensity")
   directionalLightFolder
     .add(directionalLight.shadow.camera, "near", 0.1, 3000)
     .name("Shadow Near")
@@ -79,12 +102,15 @@ function addGUI() {
     .name("Light Color")
     .onChange((val) => directionalLight.color.setHex(val))
 
-  // Directional Light Controls
+  // Directional Light 2 Controls
   const directionalLightFolder2 = gui.addFolder("Directional Light 2")
-  directionalLightFolder2.add(directionalLight2, "visible").name("Toggle Light")
+  directionalLightFolder2.add(directionalLight2, "visible").name("Light On")
   directionalLightFolder2
     .add(directionalLight2, "castShadow")
     .name("Cast Shadow")
+  directionalLightFolder2
+    .add(directionalLight2, "intensity", 0, 10)
+    .name("Intensity")
   directionalLightFolder2
     .add(directionalLight2.position, "x", -2000, 2000)
     .name("Position X")
@@ -94,9 +120,6 @@ function addGUI() {
   directionalLightFolder2
     .add(directionalLight2.position, "z", -2000, 2000)
     .name("Position Z")
-  directionalLightFolder2
-    .add(directionalLight2, "intensity", 0, 10)
-    .name("Intensity")
   directionalLightFolder2
     .add(directionalLight2.shadow.camera, "near", 0.1, 3000)
     .name("Shadow Near")
@@ -157,49 +180,13 @@ function addGUI() {
     .name("Light Color")
     .onChange((val) => directionalLight2.color.setHex(val))
 
-  // Point Light 1 Controls
-  const pointLight1Folder = gui.addFolder("Red Point Light")
-  pointLight1Folder.add(pointLight1, "castShadow").name("Cast Shadow")
-  pointLight1Folder
-    .add(pointLight1.position, "x", -2000, 2000)
-    .name("Position X")
-  pointLight1Folder
-    .add(pointLight1.position, "y", -1000, 3000)
-    .name("Position Y")
-  pointLight1Folder
-    .add(pointLight1.position, "z", -2000, 2000)
-    .name("Position Z")
-  pointLight1Folder.add(pointLight1, "intensity", 0, 100000).name("Intensity")
-  pointLight1Folder
-    .addColor({ color: pointLight1.color.getHex() }, "color")
-    .name("Light Color")
-    .onChange((val) => pointLight1.color.setHex(val))
-
-  // Point Light 2 Controls
-  const pointLight2Folder = gui.addFolder("Green Point Light")
-  pointLight2Folder.add(pointLight2, "castShadow").name("Cast Shadow")
-  pointLight2Folder
-    .add(pointLight2.position, "x", -2000, 2000)
-    .name("Position X")
-  pointLight2Folder
-    .add(pointLight2.position, "y", -1000, 3000)
-    .name("Position Y")
-  pointLight2Folder
-    .add(pointLight2.position, "z", -2000, 2000)
-    .name("Position Z")
-  pointLight2Folder.add(pointLight2, "intensity", 0, 100000).name("Intensity")
-  pointLight2Folder
-    .addColor({ color: pointLight2.color.getHex() }, "color")
-    .name("Light Color")
-    .onChange((val) => pointLight2.color.setHex(val))
-
   // Spotlight Controls
-  const spotlightFolder = gui.addFolder("Blue Spotlight")
+  const spotlightFolder = gui.addFolder("Spotlight")
   spotlightFolder.add(spotlight, "castShadow").name("Cast Shadow")
+  spotlightFolder.add(spotlight, "intensity", 0, 5000).name("Intensity")
   spotlightFolder.add(spotlight.position, "x", -2000, 2000).name("Position X")
   spotlightFolder.add(spotlight.position, "y", -1000, 3000).name("Position Y")
   spotlightFolder.add(spotlight.position, "z", -2000, 2000).name("Position Z")
-  spotlightFolder.add(spotlight, "intensity", 0, 5000).name("Intensity")
   spotlightFolder.add(spotlight, "distance", 0, 2000).name("Distance")
   spotlightFolder.add(spotlight, "angle", 0, Math.PI / 2).name("Angle")
   spotlightFolder.add(spotlight, "penumbra", 0, 1).name("Penumbra")
@@ -209,14 +196,41 @@ function addGUI() {
     .name("Light Color")
     .onChange((val) => spotlight.color.setHex(val))
 
-  // Ambient Light Controls
-  const ambientFolder = gui.addFolder("Ambient Light")
-  ambientFolder.add(ambient, "visible").name("Toggle Light")
-  ambientFolder.add(ambient, "intensity", 0, 10).name("Intensity")
-  ambientFolder
-    .addColor({ color: ambient.color.getHex() }, "color")
+  // Point Light 1 Controls
+  const pointLight1Folder = gui.addFolder("Red Point Light")
+  pointLight1Folder.add(pointLight1, "castShadow").name("Cast Shadow")
+  pointLight1Folder.add(pointLight1, "intensity", 0, 100000).name("Intensity")
+  pointLight1Folder
+    .add(pointLight1.position, "x", -2000, 2000)
+    .name("Position X")
+  pointLight1Folder
+    .add(pointLight1.position, "y", -1000, 3000)
+    .name("Position Y")
+  pointLight1Folder
+    .add(pointLight1.position, "z", -2000, 2000)
+    .name("Position Z")
+  pointLight1Folder
+    .addColor({ color: pointLight1.color.getHex() }, "color")
     .name("Light Color")
-    .onChange((val) => ambient.color.setHex(val))
+    .onChange((val) => pointLight1.color.setHex(val))
+
+  // Point Light 2 Controls
+  const pointLight2Folder = gui.addFolder("Green Point Light")
+  pointLight2Folder.add(pointLight2, "castShadow").name("Cast Shadow")
+  pointLight2Folder.add(pointLight2, "intensity", 0, 100000).name("Intensity")
+  pointLight2Folder
+    .add(pointLight2.position, "x", -2000, 2000)
+    .name("Position X")
+  pointLight2Folder
+    .add(pointLight2.position, "y", -1000, 3000)
+    .name("Position Y")
+  pointLight2Folder
+    .add(pointLight2.position, "z", -2000, 2000)
+    .name("Position Z")
+  pointLight2Folder
+    .addColor({ color: pointLight2.color.getHex() }, "color")
+    .name("Light Color")
+    .onChange((val) => pointLight2.color.setHex(val))
 
   // ANIMATIONS
   const animationFolder = gui.addFolder("Animations")
@@ -286,19 +300,6 @@ function addGUI() {
     .add(modelTransform, "rotZ", -Math.PI, Math.PI)
     .name("Rotation Z")
     .onChange(() => updateModelTransform(model))
-
-  // Fog toggle
-  gui
-    .add(fogParams, "enableFog")
-    .name("Toggle Fog")
-    .onChange((value) => {
-      if (value) {
-        scene.fog = new THREE.Fog(0x808080, 1000, FAR)
-        // renderer.render(scene, camera);
-      } else {
-        scene.fog = null // Disable fog
-      }
-    })
 }
 
 function updateModelTransform(model) {
