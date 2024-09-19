@@ -10,7 +10,7 @@ function addGUI() {
     .name("Fog On")
     .onChange((value) => {
       if (value) {
-        scene.fog = new THREE.Fog(0x808080, 1000, FAR)
+        scene.fog = new THREE.Fog(0x808080, 2000, FAR)
         // renderer.render(scene, camera);
       } else {
         scene.fog = null // Disable fog

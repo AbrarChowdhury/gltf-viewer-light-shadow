@@ -28,7 +28,7 @@ function init() {
   // SCENE
   scene = new THREE.Scene()
   scene.background = new THREE.Color(0x808080)
-  scene.fog = new THREE.Fog(0x808080, 1000, FAR)
+  scene.fog = new THREE.Fog(0x808080, 2000, FAR)
   addLights(scene)
   createHUD()
   createScene()
