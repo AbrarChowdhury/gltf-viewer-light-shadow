@@ -7,11 +7,21 @@ import { addLights, createHUD, updateLightHelpers } from "./lights"
 import addGUI from "./controls"
 import { onKeyDown, onMouseDown, onWindowResize } from "./eventHandlers"
 import createInfoCard from "./infoCard"
+import vertexShader from "./shaders/vertexShader"
+import fragmentShader from "./shaders/fragmentShader"
 
 const clock = new THREE.Clock()
 let newGltfLoaded = false
-init()
 
+const shaderMaterial = new THREE.ShaderMaterial( {
+  // vertexShader: vertexShader,
+  fragmentShader: fragmentShader,
+  uniforms:{
+    parameter:{type:"f", value:0}
+  }
+} );
+
+init()
 function init() {
   container = document.createElement("div")
   document.body.appendChild(container)
@@ -90,7 +100,7 @@ function createScene() {
   const geometry = new THREE.PlaneGeometry(100, 100)
   const planeMaterial = new THREE.MeshPhongMaterial({ color: 0x999999 }) // Grayish floor color
 
-  const ground = new THREE.Mesh(geometry, planeMaterial)
+  const ground = new THREE.Mesh(geometry, shaderMaterial)
   ground.position.set(0, FLOOR, 0)
   ground.rotation.x = -Math.PI / 2
   ground.scale.set(100, 100, 100)
@@ -103,6 +113,7 @@ function createScene() {
 
 function animate() {
   render()
+  shaderMaterial.uniforms.parameter.value+=0.01
   stats.update()
 }
 
