@@ -9,16 +9,6 @@ import fragmentShader from "./shaders/fragmentShader"
 
 const clock = new THREE.Clock()
 
-const shaderMaterial = new THREE.ShaderMaterial({
-  vertexShader: vertexShader,
-  fragmentShader: fragmentShader,
-  uniforms: {
-    u_resolution: { type: 'v2', value: new THREE.Vector2(window.innerWidth, window.innerHeight) },
-    u_lightPosition: { type: 'v3', value: new THREE.Vector3(0, 150, 0) },  // Light position
-    u_objectPosition: { type: 'v3', value: new THREE.Vector3(0, 1, 0) }, // Object position
-  },
-})
-
 init()
 function init() {
   container = document.createElement("div")
@@ -28,10 +18,11 @@ function init() {
   camera = new THREE.PerspectiveCamera(
     23,
     SCREEN_WIDTH / SCREEN_HEIGHT,
-    NEAR,
-    FAR
+    1,
+    20000
   )
-  camera.position.set(700, 50, 1900)
+  camera.position.set(0, 50, 2000)
+
 
   // SCENE
   scene = new THREE.Scene()
@@ -47,7 +38,6 @@ function init() {
 
   renderer.autoClear = false
 
-
   // CONTROLS
   controls = new OrbitControls(camera, renderer.domElement)
 
@@ -56,43 +46,32 @@ function init() {
 }
 
 function createScene() {
-  // Object that casts shadow (a sphere in this case)
-  const objectGeometry = new THREE.SphereGeometry(30, 32, 32)
-  const objectMaterial = new THREE.MeshStandardMaterial({ color: 0xff0000 })
-  const objectMesh = new THREE.Mesh(objectGeometry, objectMaterial)
-  objectMesh.position.set(0, 1, 0) // Position the object above the plane
-  objectMesh.castShadow = true
-  scene.add(objectMesh)
+  // //Shpere
+  // const objectGeometry = new THREE.SphereGeometry(30, 32, 32)
+  // const objectMaterial = new THREE.MeshStandardMaterial({ color: 0xff0000 })
+  // const objectMesh = new THREE.Mesh(objectGeometry, objectMaterial)
+  // objectMesh.position.set(0, 1, 0) 
+  // scene.add(objectMesh)
 
-  // Light source (casting shadows)
-  const lightSource = new THREE.DirectionalLight('white', 1,)
-  lightSource.position.set(0, 150, 0) // Position the light above
-  lightSource.castShadow = true
-  scene.add(lightSource)
-  const lightHelper = new THREE.DirectionalLightHelper(lightSource, 5);
-  scene.add(lightHelper)
+  const shaderMaterial = new THREE.ShaderMaterial()
   // GROUND
-  const geometry = new THREE.PlaneGeometry(100, 100)
+  const geometry = new THREE.PlaneGeometry(10, 10)
   const ground = new THREE.Mesh(geometry, shaderMaterial)
-  ground.position.set(0, -40, 0)
-  ground.rotation.x = -Math.PI / 2
+  ground.position.set(0, 0, 0)
+  // ground.rotation.x = -Math.PI / 2
   ground.scale.set(100, 100, 100)
-
-  ground.castShadow = false
-  ground.receiveShadow = true
-
+  ground.frustumCulled = false
   scene.add(ground)
 }
 
 function animate() {
   render()
   // shaderMaterial.uniforms.parameter.value += 0.01
-  stats.update()
 }
 
 function render() {
   const delta = clock.getDelta()
-  mixer?.update(delta)
   renderer.clear()
   renderer.render(scene, camera)
+  controls.update();
 }
