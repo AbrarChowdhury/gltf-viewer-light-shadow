@@ -1,15 +1,17 @@
 import "./style.css"
 import * as THREE from "three"
-import Stats from "three/addons/libs/stats.module.js"
 import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js"
-import { onKeyDown, onMouseDown, onWindowResize } from "./eventHandlers"
-import createInfoCard from "./infoCard"
-import vertexShader from "./shaders/vertexShader"
-import fragmentShader from "./shaders/fragmentShader"
+import { onWindowResize } from "./eventHandlers"
 
+let container, camera, scene, renderer, controls, plane
 const clock = new THREE.Clock()
+// const mouse = new THREE.Vector2()
+
+const SCREEN_WIDTH = window.innerWidth
+const SCREEN_HEIGHT = window.innerHeight
 
 init()
+
 function init() {
   container = document.createElement("div")
   document.body.appendChild(container)
@@ -22,7 +24,6 @@ function init() {
     20000
   )
   camera.position.set(0, 50, 2000)
-
 
   // SCENE
   scene = new THREE.Scene()
@@ -43,25 +44,31 @@ function init() {
 
   // Event Listeners
   window.addEventListener("resize", onWindowResize)
+  window.addEventListener("mousemove", onMouseMove, false)
 }
 
 function createScene() {
-  // //Shpere
-  // const objectGeometry = new THREE.SphereGeometry(30, 32, 32)
-  // const objectMaterial = new THREE.MeshStandardMaterial({ color: 0xff0000 })
-  // const objectMesh = new THREE.Mesh(objectGeometry, objectMaterial)
-  // objectMesh.position.set(0, 1, 0) 
-  // scene.add(objectMesh)
 
   const shaderMaterial = new THREE.ShaderMaterial()
-  // GROUND
+
+  // Plane
   const geometry = new THREE.PlaneGeometry(10, 10)
-  const ground = new THREE.Mesh(geometry, shaderMaterial)
-  ground.position.set(0, 0, 0)
-  // ground.rotation.x = -Math.PI / 2
-  ground.scale.set(100, 100, 100)
-  ground.frustumCulled = false
-  scene.add(ground)
+  plane = new THREE.Mesh(geometry, shaderMaterial)
+  plane.position.set(0, 0, 0)
+  plane.scale.set(100, 100, 100)
+  plane.frustumCulled = false
+  scene.add(plane)
+}
+
+// Handle mouse movement
+function onMouseMove(event) {
+  // // Update the mouse position
+  // mouse.x = event.clientX
+  // mouse.y = event.clientY
+
+  // // Normalize mouse coordinates and update the shader uniform
+  // plane.material.uniforms.u_mouse.value.x = mouse.x
+  // plane.material.uniforms.u_mouse.value.y = window.innerHeight - mouse.y // Invert Y-coordinate for WebGL
 }
 
 function animate() {
@@ -69,8 +76,9 @@ function animate() {
 }
 
 function render() {
-  const delta = clock.getDelta()
+  // const time = clock.getElapsedTime()
+  // plane.material.uniforms.u_time.value = time
   renderer.clear()
   renderer.render(scene, camera)
-  controls.update();
+  controls.update()
 }
