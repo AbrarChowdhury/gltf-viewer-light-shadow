@@ -66,7 +66,6 @@ function createScene() {
 
 function animate() {
   render()
-  // shaderMaterial.uniforms.parameter.value += 0.01
 }
 
 function render() {
