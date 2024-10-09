@@ -4,16 +4,15 @@ import Stats from "three/addons/libs/stats.module.js"
 import { GUI } from "three/addons/libs/lil-gui.module.min.js"
 import { HorizontalBlurShader } from "three/addons/shaders/HorizontalBlurShader.js"
 import { VerticalBlurShader } from "three/addons/shaders/VerticalBlurShader.js"
-import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js" 
+import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js"
 import { addLights } from "./lights"
 
 let camera, scene, renderer, stats, gui
 let newGltfLoaded = false
-const meshes = []
 
 const PLANE_WIDTH = 2.5
 const PLANE_HEIGHT = 2.5
-const CAMERA_HEIGHT = 0.3
+const CAMERA_HEIGHT = 5
 
 const state = {
   shadow: {
@@ -24,6 +23,11 @@ const state = {
   plane: {
     color: "#ffffff",
     opacity: 1,
+    width: PLANE_WIDTH,
+    height: PLANE_HEIGHT,
+  },
+  camera: {
+    height: CAMERA_HEIGHT,
   },
   showWireframe: false,
 }
@@ -152,8 +156,6 @@ function init() {
   gui = new GUI()
   const shadowFolder = gui.addFolder("shadow")
   shadowFolder.open()
-  const planeFolder = gui.addFolder("plane")
-  planeFolder.open()
 
   shadowFolder.add(state.shadow, "blur", 0, 15, 0.1)
   shadowFolder.add(state.shadow, "darkness", 1, 5, 0.1).onChange(function () {
@@ -161,12 +163,6 @@ function init() {
   })
   shadowFolder.add(state.shadow, "opacity", 0, 1, 0.01).onChange(function () {
     plane.material.opacity = state.shadow.opacity
-  })
-  planeFolder.addColor(state.plane, "color").onChange(function () {
-    fillPlane.material.color = new THREE.Color(state.plane.color)
-  })
-  planeFolder.add(state.plane, "opacity", 0, 1, 0.01).onChange(function () {
-    fillPlane.material.opacity = state.plane.opacity
   })
 
   gui.add(state, "showWireframe").onChange(function () {
@@ -177,6 +173,48 @@ function init() {
     }
   })
 
+  // Add GUI elements for plane and camera properties
+  const planeFolder = gui.addFolder("plane")
+  planeFolder.open()
+
+  planeFolder.addColor(state.plane, "color").onChange(function () {
+    fillPlane.material.color = new THREE.Color(state.plane.color)
+  })
+  planeFolder.add(state.plane, "opacity", 0, 1, 0.01).onChange(function () {
+    fillPlane.material.opacity = state.plane.opacity
+  })
+  planeFolder
+    .add(state.plane, "width", 1, 10, 0.1)
+    .name("Plane Width")
+    .onChange(function (value) {
+      plane.scale.x = value / PLANE_WIDTH // Scale the plane width dynamically
+      blurPlane.scale.x = value / PLANE_WIDTH
+      fillPlane.scale.x = value / PLANE_WIDTH
+      shadowCamera.left = -value / 2
+      shadowCamera.right = value / 2
+      shadowCamera.updateProjectionMatrix()
+    })
+  planeFolder
+    .add(state.plane, "height", 1, 10, 0.1)
+    .name("Plane Height")
+    .onChange(function (value) {
+      plane.scale.z = value / PLANE_HEIGHT // Scale the plane height dynamically
+      blurPlane.scale.z = value / PLANE_HEIGHT
+      fillPlane.scale.z = value / PLANE_HEIGHT
+      shadowCamera.top = value / 2
+      shadowCamera.bottom = -value / 2
+      shadowCamera.updateProjectionMatrix()
+    })
+
+  const cameraFolder = gui.addFolder("camera")
+  cameraFolder.open()
+  cameraFolder
+    .add(state.camera, "height", 0.1, 5, 0.1)
+    .name("Camera Height")
+    .onChange(function (value) {
+      shadowCamera.far = value
+      shadowCamera.updateProjectionMatrix()
+    })
   //
 
   renderer = new THREE.WebGLRenderer({ antialias: true })
@@ -221,7 +259,6 @@ function blurShadow(amount) {
 }
 
 function animate() {
-
   // remove the background
   const initialBackground = scene.background
   scene.background = null
@@ -257,7 +294,6 @@ function animate() {
   stats.update()
 }
 
-
 function loadModel(gltf) {
   gltf.scene.traverse(function (node) {
     if (node.isMesh) {
@@ -283,9 +319,9 @@ function loadModel(gltf) {
     modelTransform.rotY,
     modelTransform.rotZ
   )
-  if(!newGltfLoaded){
-    model.getObjectByName("Ch22_Hair").material.roughness=0.7
-    model.getObjectByName("Ch22_Body").material.roughness=50
+  if (!newGltfLoaded) {
+    model.getObjectByName("Ch22_Hair").material.roughness = 0.7
+    model.getObjectByName("Ch22_Body").material.roughness = 50
   }
   scene.add(model)
 
@@ -296,7 +332,7 @@ function loadModel(gltf) {
 
     // Choose a random animation from the list
     const randomIndex = Math.floor(Math.random() * animations.length)
-    const randomAnimation = animations[newGltfLoaded?randomIndex:1]
+    const randomAnimation = animations[newGltfLoaded ? randomIndex : 1]
 
     // Play the randomly selected animation
     activeAction = mixer.clipAction(randomAnimation)
