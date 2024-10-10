@@ -300,6 +300,17 @@ function addGUI() {
     .add(modelTransform, "rotZ", -Math.PI, Math.PI)
     .name("Rotation Z")
     .onChange(() => updateModelTransform(model))
+
+  const shadowFolder = gui.addFolder("shader shadow")
+  shadowFolder.open()
+
+  shadowFolder.add(state.shadow, "blur", 0, 15, 0.1)
+  shadowFolder.add(state.shadow, "darkness", 1, 5, 0.1).onChange(function () {
+    depthMaterial.userData.darkness.value = state.shadow.darkness
+  })
+  shadowFolder.add(state.shadow, "opacity", 0, 1, 0.01).onChange(function () {
+    plane.material.opacity = state.shadow.opacity
+  })
 }
 
 function updateModelTransform(model) {

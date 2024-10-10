@@ -57,6 +57,28 @@
       let animations = []
       let activeAction
       let currentAnimation = ""
+      //shader shadow state
+      const PLANE_WIDTH = 2.5
+      const PLANE_HEIGHT = 2.5
+      const Shadow_Source_Height = 5
+      const state = {
+        shadow: {
+          blur: 3.5,
+          darkness: 1,
+          opacity: 1,
+          sourceHeight: Shadow_Source_Height,
+        },
+      }
+
+      let shadowGroup,
+        renderTarget,
+        renderTargetBlur,
+        shadowCamera,
+        cameraHelper,
+        depthMaterial,
+        horizontalBlurMaterial,
+        verticalBlurMaterial
+      let plane, blurPlane, fillPlane
     </script>
     <script type="module" src="/main.js"></script>
   </body>

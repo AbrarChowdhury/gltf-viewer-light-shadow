@@ -1,47 +1,15 @@
 import * as THREE from "three"
 import { OrbitControls } from "three/addons/controls/OrbitControls.js"
 import Stats from "three/addons/libs/stats.module.js"
-import { GUI } from "three/addons/libs/lil-gui.module.min.js"
 import { HorizontalBlurShader } from "three/addons/shaders/HorizontalBlurShader.js"
 import { VerticalBlurShader } from "three/addons/shaders/VerticalBlurShader.js"
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js"
 import { addLights } from "./lights"
+import addGUI from "./controls"
 
-let camera, scene, renderer, stats, gui
+const clock = new THREE.Clock()
 let newGltfLoaded = false
 
-const PLANE_WIDTH = 2.5
-const PLANE_HEIGHT = 2.5
-const CAMERA_HEIGHT = 5
-
-const state = {
-  shadow: {
-    blur: 3.5,
-    darkness: 1,
-    opacity: 1,
-  },
-  plane: {
-    color: "#ffffff",
-    opacity: 1,
-    width: PLANE_WIDTH,
-    height: PLANE_HEIGHT,
-  },
-  camera: {
-    height: CAMERA_HEIGHT,
-  },
-  showWireframe: false,
-}
-
-let shadowGroup,
-  renderTarget,
-  renderTargetBlur,
-  shadowCamera,
-  cameraHelper,
-  depthMaterial,
-  horizontalBlurMaterial,
-  verticalBlurMaterial
-
-let plane, blurPlane, fillPlane
 
 init()
 
@@ -91,6 +59,8 @@ function init() {
     depthWrite: false,
   })
   plane = new THREE.Mesh(planeGeometry, planeMaterial)
+  plane.castShadow = false
+  plane.receiveShadow = true
   // make sure it's rendered after the fillPlane
   plane.renderOrder = 1
   shadowGroup.add(plane)
@@ -105,15 +75,14 @@ function init() {
 
   // the plane with the color of the ground
   const fillPlaneMaterial = new THREE.MeshBasicMaterial({
-    color: state.plane.color,
-    opacity: state.plane.opacity,
+    color: "#ffffff",
+    opacity: 1,
     transparent: true,
     depthWrite: false,
   })
   fillPlane = new THREE.Mesh(planeGeometry, fillPlaneMaterial)
   fillPlane.rotateX(Math.PI)
   shadowGroup.add(fillPlane)
-
   // the camera to render the depth material from
   shadowCamera = new THREE.OrthographicCamera(
     -PLANE_WIDTH / 2,
@@ -121,7 +90,7 @@ function init() {
     PLANE_HEIGHT / 2,
     -PLANE_HEIGHT / 2,
     0,
-    CAMERA_HEIGHT
+    Shadow_Source_Height
   )
   shadowCamera.rotation.x = Math.PI / 2 // get the camera to look up
   shadowGroup.add(shadowCamera)
@@ -151,71 +120,9 @@ function init() {
   verticalBlurMaterial = new THREE.ShaderMaterial(VerticalBlurShader)
   verticalBlurMaterial.depthTest = false
 
-  //
 
-  gui = new GUI()
-  const shadowFolder = gui.addFolder("shadow")
-  shadowFolder.open()
 
-  shadowFolder.add(state.shadow, "blur", 0, 15, 0.1)
-  shadowFolder.add(state.shadow, "darkness", 1, 5, 0.1).onChange(function () {
-    depthMaterial.userData.darkness.value = state.shadow.darkness
-  })
-  shadowFolder.add(state.shadow, "opacity", 0, 1, 0.01).onChange(function () {
-    plane.material.opacity = state.shadow.opacity
-  })
 
-  gui.add(state, "showWireframe").onChange(function () {
-    if (state.showWireframe) {
-      scene.add(cameraHelper)
-    } else {
-      scene.remove(cameraHelper)
-    }
-  })
-
-  // Add GUI elements for plane and camera properties
-  const planeFolder = gui.addFolder("plane")
-  planeFolder.open()
-
-  planeFolder.addColor(state.plane, "color").onChange(function () {
-    fillPlane.material.color = new THREE.Color(state.plane.color)
-  })
-  planeFolder.add(state.plane, "opacity", 0, 1, 0.01).onChange(function () {
-    fillPlane.material.opacity = state.plane.opacity
-  })
-  planeFolder
-    .add(state.plane, "width", 1, 10, 0.1)
-    .name("Plane Width")
-    .onChange(function (value) {
-      plane.scale.x = value / PLANE_WIDTH // Scale the plane width dynamically
-      blurPlane.scale.x = value / PLANE_WIDTH
-      fillPlane.scale.x = value / PLANE_WIDTH
-      shadowCamera.left = -value / 2
-      shadowCamera.right = value / 2
-      shadowCamera.updateProjectionMatrix()
-    })
-  planeFolder
-    .add(state.plane, "height", 1, 10, 0.1)
-    .name("Plane Height")
-    .onChange(function (value) {
-      plane.scale.z = value / PLANE_HEIGHT // Scale the plane height dynamically
-      blurPlane.scale.z = value / PLANE_HEIGHT
-      fillPlane.scale.z = value / PLANE_HEIGHT
-      shadowCamera.top = value / 2
-      shadowCamera.bottom = -value / 2
-      shadowCamera.updateProjectionMatrix()
-    })
-
-  const cameraFolder = gui.addFolder("camera")
-  cameraFolder.open()
-  cameraFolder
-    .add(state.camera, "height", 0.1, 5, 0.1)
-    .name("Camera Height")
-    .onChange(function (value) {
-      shadowCamera.far = value
-      shadowCamera.updateProjectionMatrix()
-    })
-  //
 
   renderer = new THREE.WebGLRenderer({ antialias: true })
   renderer.setPixelRatio(window.devicePixelRatio)
@@ -292,6 +199,22 @@ function animate() {
 
   renderer.render(scene, camera)
   stats.update()
+  const delta = clock.getDelta()
+
+  mixer?.update(delta)
+
+  // if (!middleMouseDown || useOrbitControls) {
+  //   controls.update(delta)
+  // }
+
+  renderer.clear()
+  renderer.render(scene, camera)
+
+  // Render debug HUD with shadow map
+  if (showHUD) {
+    lightShadowMapViewer.render(renderer)
+  }
+  // updateLightHelpers()
 }
 
 function loadModel(gltf) {
@@ -319,9 +242,9 @@ function loadModel(gltf) {
     modelTransform.rotY,
     modelTransform.rotZ
   )
-  if (!newGltfLoaded) {
-    model.getObjectByName("Ch22_Hair").material.roughness = 0.7
-    model.getObjectByName("Ch22_Body").material.roughness = 50
+  if(!newGltfLoaded){
+    model.getObjectByName("Ch22_Hair").material.roughness=0.7
+    model.getObjectByName("Ch22_Body").material.roughness=50
   }
   scene.add(model)
 
@@ -332,7 +255,7 @@ function loadModel(gltf) {
 
     // Choose a random animation from the list
     const randomIndex = Math.floor(Math.random() * animations.length)
-    const randomAnimation = animations[newGltfLoaded ? randomIndex : 1]
+    const randomAnimation = animations[newGltfLoaded?randomIndex:1]
 
     // Play the randomly selected animation
     activeAction = mixer.clipAction(randomAnimation)
@@ -342,5 +265,5 @@ function loadModel(gltf) {
     currentAnimation = randomAnimation.name
   }
   newGltfLoaded = true
-  // addGUI()
+  addGUI()
 }
