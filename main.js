@@ -5,11 +5,9 @@ import { HorizontalBlurShader } from "three/addons/shaders/HorizontalBlurShader.
 import { VerticalBlurShader } from "three/addons/shaders/VerticalBlurShader.js"
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js"
 import { addLights } from "./lights"
-import addGUI from "./controls"
+import { loadModel, blurShadow } from "./utils"
 
 const clock = new THREE.Clock()
-let newGltfLoaded = false
-
 
 init()
 
@@ -97,12 +95,11 @@ function init() {
 
   cameraHelper = new THREE.CameraHelper(shadowCamera)
 
-  // like MeshDepthMaterial, but goes from black to transparent
   depthMaterial = new THREE.MeshDepthMaterial()
   depthMaterial.userData.darkness = { value: state.shadow.darkness }
   depthMaterial.onBeforeCompile = function (shader) {
     shader.uniforms.darkness = depthMaterial.userData.darkness
-    shader.fragmentShader = /* glsl */`
+    shader.fragmentShader = /* glsl */  `
       uniform float darkness;
       ${shader.fragmentShader.replace(
         "gl_FragColor = vec4( vec3( 1.0 - fragCoordZ ), opacity );",
@@ -120,17 +117,13 @@ function init() {
   verticalBlurMaterial = new THREE.ShaderMaterial(VerticalBlurShader)
   verticalBlurMaterial.depthTest = false
 
-
-
-
-
   renderer = new THREE.WebGLRenderer({ antialias: true })
   renderer.setPixelRatio(window.devicePixelRatio)
   renderer.setSize(window.innerWidth, window.innerHeight)
   renderer.setAnimationLoop(animate)
   document.body.appendChild(renderer.domElement)
 
-  //
+
 
   new OrbitControls(camera, renderer.domElement)
 }
@@ -140,29 +133,6 @@ function onWindowResize() {
   camera.updateProjectionMatrix()
 
   renderer.setSize(window.innerWidth, window.innerHeight)
-}
-
-// renderTarget --> blurPlane (horizontalBlur) --> renderTargetBlur --> blurPlane (verticalBlur) --> renderTarget
-function blurShadow(amount) {
-  blurPlane.visible = true
-
-  // blur horizontally and draw in the renderTargetBlur
-  blurPlane.material = horizontalBlurMaterial
-  blurPlane.material.uniforms.tDiffuse.value = renderTarget.texture
-  horizontalBlurMaterial.uniforms.h.value = (amount * 1) / 256
-
-  renderer.setRenderTarget(renderTargetBlur)
-  renderer.render(blurPlane, shadowCamera)
-
-  // blur vertically and draw in the main renderTarget
-  blurPlane.material = verticalBlurMaterial
-  blurPlane.material.uniforms.tDiffuse.value = renderTargetBlur.texture
-  verticalBlurMaterial.uniforms.v.value = (amount * 1) / 256
-
-  renderer.setRenderTarget(renderTarget)
-  renderer.render(blurPlane, shadowCamera)
-
-  blurPlane.visible = false
 }
 
 function animate() {
@@ -215,55 +185,4 @@ function animate() {
     lightShadowMapViewer.render(renderer)
   }
   // updateLightHelpers()
-}
-
-function loadModel(gltf) {
-  gltf.scene.traverse(function (node) {
-    if (node.isMesh) {
-      node.castShadow = true
-      node.receiveShadow = true
-      node.frustumCulled = false
-    }
-  })
-
-  model = gltf.scene
-  model.scale.set(
-    modelTransform.scaleX,
-    modelTransform.scaleY,
-    modelTransform.scaleZ
-  )
-  model.position.set(
-    modelTransform.posX,
-    modelTransform.posY,
-    modelTransform.posZ
-  )
-  model.rotation.set(
-    modelTransform.rotX,
-    modelTransform.rotY,
-    modelTransform.rotZ
-  )
-  if(!newGltfLoaded){
-    model.getObjectByName("Ch22_Hair").material.roughness=0.7
-    model.getObjectByName("Ch22_Body").material.roughness=50
-  }
-  scene.add(model)
-
-  // Add animations if present
-  if (gltf.animations.length > 0) {
-    mixer = new THREE.AnimationMixer(model)
-    animations = gltf.animations // Store animations
-
-    // Choose a random animation from the list
-    const randomIndex = Math.floor(Math.random() * animations.length)
-    const randomAnimation = animations[newGltfLoaded?randomIndex:1]
-
-    // Play the randomly selected animation
-    activeAction = mixer.clipAction(randomAnimation)
-    activeAction.play()
-
-    // Store the name of the current animation
-    currentAnimation = randomAnimation.name
-  }
-  newGltfLoaded = true
-  addGUI()
 }
