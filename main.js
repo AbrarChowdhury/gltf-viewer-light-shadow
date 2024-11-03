@@ -92,10 +92,10 @@ function init() {
   )
   // shadowCamera.rotation.x = Math.PI / 2 // get the camera to look up
 
-  shadowCamera.position.set(0, -0.032, 0); 
-  shadowCamera.rotation.x = Math.PI / 2 // get the camera to look up
+  shadowCamera.position.set(0, -0.252, 0); 
+  shadowCamera.rotation.x = shadowCameraTransform.rotX// get the camera to look up
   // shadowCamera.lookAt(new THREE.Vector3(-5, 10, 0));
-  const shadowCameraHelper = new THREE.CameraHelper(shadowCamera)
+  shadowCameraHelper = new THREE.CameraHelper(shadowCamera)
   scene.add(shadowCameraHelper)
   shadowGroup.add(shadowCamera)
 

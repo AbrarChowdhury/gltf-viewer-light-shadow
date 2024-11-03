@@ -311,6 +311,41 @@ function addGUI() {
   shadowFolder.add(state.shadow, "opacity", 0, 1, 0.01).onChange(function () {
     plane.material.opacity = state.shadow.opacity
   })
+
+  // Rotation controls
+  shadowFolder
+    .add(shadowCameraTransform, "rotX", -Math.PI, Math.PI)
+    .name("Rotation X")
+    .onChange(() =>{
+      shadowCamera.rotation.set(
+        shadowCameraTransform.rotX,
+        shadowCameraTransform.rotY,
+        shadowCameraTransform.rotZ
+      )
+      shadowCamera.update()}
+    )
+  shadowFolder
+    .add(shadowCameraTransform, "rotY", -Math.PI, Math.PI)
+    .name("Rotation Y")
+    .onChange(() =>{
+      shadowCamera.rotation.set(
+        shadowCameraTransform.rotX,
+        shadowCameraTransform.rotY,
+        shadowCameraTransform.rotZ
+      )
+      shadowCamera.update()}
+    )
+  shadowFolder
+    .add(shadowCameraTransform, "rotZ", -Math.PI, Math.PI)
+    .name("Rotation Z")
+    .onChange(() =>{
+      shadowCamera.rotation.set(
+        shadowCameraTransform.rotX,
+        shadowCameraTransform.rotY,
+        shadowCameraTransform.rotZ
+      )
+      shadowCamera.update()}
+    )
 }
 
 function updateModelTransform(model) {
