@@ -92,7 +92,7 @@ function init() {
   )
   // shadowCamera.rotation.x = Math.PI / 2 // get the camera to look up
 
-  shadowCamera.position.set(0, -0.252, 0); 
+  shadowCamera.position.set(shadowCameraTransform.posX, shadowCameraTransform.posY, shadowCameraTransform.posZ); 
   shadowCamera.rotation.x = shadowCameraTransform.rotX// get the camera to look up
   // shadowCamera.lookAt(new THREE.Vector3(-5, 10, 0));
   shadowCameraHelper = new THREE.CameraHelper(shadowCamera)

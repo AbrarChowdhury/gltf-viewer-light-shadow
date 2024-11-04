@@ -316,36 +316,28 @@ function addGUI() {
   shadowFolder
     .add(shadowCameraTransform, "rotX", -Math.PI, Math.PI)
     .name("Rotation X")
-    .onChange(() =>{
-      shadowCamera.rotation.set(
-        shadowCameraTransform.rotX,
-        shadowCameraTransform.rotY,
-        shadowCameraTransform.rotZ
-      )
-      shadowCamera.update()}
-    )
+    .onChange(() => updateCameraTransform())
   shadowFolder
     .add(shadowCameraTransform, "rotY", -Math.PI, Math.PI)
     .name("Rotation Y")
-    .onChange(() =>{
-      shadowCamera.rotation.set(
-        shadowCameraTransform.rotX,
-        shadowCameraTransform.rotY,
-        shadowCameraTransform.rotZ
-      )
-      shadowCamera.update()}
-    )
+    .onChange(() => updateCameraTransform())
   shadowFolder
     .add(shadowCameraTransform, "rotZ", -Math.PI, Math.PI)
     .name("Rotation Z")
-    .onChange(() =>{
-      shadowCamera.rotation.set(
-        shadowCameraTransform.rotX,
-        shadowCameraTransform.rotY,
-        shadowCameraTransform.rotZ
-      )
-      shadowCamera.update()}
-    )
+    .onChange(() => updateCameraTransform())
+  // Rotation controls
+  shadowFolder
+    .add(shadowCameraTransform, "posX", -1, 1)
+    .name("Position X")
+    .onChange(() => updateCameraTransform())
+  shadowFolder
+    .add(shadowCameraTransform, "posY", -1, 1)
+    .name("Position Y")
+    .onChange(() => updateCameraTransform())
+  shadowFolder
+    .add(shadowCameraTransform, "posZ", -1, 1)
+    .name("Position Z")
+    .onChange(() => updateCameraTransform())
 }
 
 function updateModelTransform(model) {
@@ -364,6 +356,19 @@ function updateModelTransform(model) {
     modelTransform.rotY,
     modelTransform.rotZ
   )
+}
+function updateCameraTransform() {
+  shadowCamera.position.set(
+    shadowCameraTransform.posX,
+    shadowCameraTransform.posY,
+    shadowCameraTransform.posZ
+  )
+  shadowCamera.rotation.set(
+    shadowCameraTransform.rotX,
+    shadowCameraTransform.rotY,
+    shadowCameraTransform.rotZ
+  )
+  // shadowCamera.update()
 }
 
 function switchAnimation(animationName) {
