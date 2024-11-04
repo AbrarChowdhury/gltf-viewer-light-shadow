@@ -26,7 +26,7 @@ function addLights(scene) {
     const dirLightHelper = new THREE.DirectionalLightHelper(directionalLight, 5);
     dirLightHelper.isLightHelper = true;
     lightHelpers.push(dirLightHelper)
-    scene.add(dirLightHelper)
+    // scene.add(dirLightHelper)
     
     // DIRECTIONAL LIGHT
     directionalLight2 = new THREE.DirectionalLight(0xddebff, 0.5);
@@ -45,7 +45,7 @@ function addLights(scene) {
     const dirLightHelper2 = new THREE.DirectionalLightHelper(directionalLight2, 5);
     dirLightHelper2.isLightHelper = true;
     lightHelpers.push(dirLightHelper2)
-    scene.add(dirLightHelper2)
+    // scene.add(dirLightHelper2)
   
     // POINT LIGHT 1 (Red)
     pointLight1 = new THREE.PointLight(0xff0000, 1, 50000);
@@ -57,7 +57,7 @@ function addLights(scene) {
     const pointLightHelper1 = new THREE.PointLightHelper(pointLight1, 5);
     pointLightHelper1.isLightHelper = true;
     lightHelpers.push(pointLightHelper1)
-    scene.add(pointLightHelper1)
+    // scene.add(pointLightHelper1)
   
     // POINT LIGHT 2 (Green)
     pointLight2 = new THREE.PointLight(0x00ff00, 1, 50000);
@@ -69,7 +69,7 @@ function addLights(scene) {
     const pointLightHelper2 = new THREE.PointLightHelper(pointLight2, 5);
     pointLightHelper2.isLightHelper = true;
     lightHelpers.push(pointLightHelper2)
-    scene.add(pointLightHelper2)
+    // scene.add(pointLightHelper2)
   
     // SPOTLIGHT
     spotlight = new THREE.SpotLight(0xffffff, 2, 2000, 0.59, 0.2, 0);
@@ -81,7 +81,7 @@ function addLights(scene) {
     const spotLightHelper = new THREE.SpotLightHelper(spotlight, 5);
     spotLightHelper.isLightHelper = true;
     lightHelpers.push(spotLightHelper)
-    scene.add(spotLightHelper)
+    // scene.add(spotLightHelper)
     
     function toggleHelpers() {
         scene.traverse((child) => {
