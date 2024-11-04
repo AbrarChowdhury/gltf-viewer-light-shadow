@@ -24,7 +24,7 @@
       let container, stats
 
       const fogParams = {
-        enableFog: true, 
+        enableFog: true,
       }
       const NEAR = 10,
         FAR = 3000
@@ -36,18 +36,30 @@
         width: 4096,
       }
       let model = null
+      let newGltfLoaded = false
+      let usingThreeShadow = false
       let modelTransform = {
-        scale: 200,
-        scaleX: 200,
-        scaleY: 200,
-        scaleZ: 200,
+        scale: 0.5,
+        scaleX: 0.5,
+        scaleY: 0.5,
+        scaleZ: 0.5,
         posX: 0,
-        posY: FLOOR,
+        posY: -0.3,
         posZ: 0,
         rotX: 0,
         rotY: 0,
         rotZ: 0,
       }
+      let shadowCameraTransform = {
+        posX: 0,
+        posY: -0.252,
+        posZ: 0,
+        rotX: Math.PI / 2 ,
+        rotY: 0,
+        rotZ: 0,
+        helper:true
+      }
+      let shadowCameraHelper
       let mixer
 
       let showHUD = false
@@ -57,6 +69,28 @@
       let animations = []
       let activeAction
       let currentAnimation = ""
+      //shader shadow state
+      const PLANE_WIDTH = 2.5
+      const PLANE_HEIGHT = 2.5
+      const Shadow_Source_Height = 5
+      const state = {
+        shadow: {
+          blur: 3.5,
+          darkness: 1,
+          opacity: 1,
+          sourceHeight: Shadow_Source_Height,
+        },
+      }
+
+      let shadowGroup,
+        renderTarget,
+        renderTargetBlur,
+        shadowCamera,
+        cameraHelper,
+        depthMaterial,
+        horizontalBlurMaterial,
+        verticalBlurMaterial
+      let plane, blurPlane, fillPlane
     </script>
     <script type="module" src="/main.js"></script>
   </body>

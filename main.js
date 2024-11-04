@@ -1,119 +1,187 @@
-import "./style.css"
 import * as THREE from "three"
+import { OrbitControls } from "three/addons/controls/OrbitControls.js"
 import Stats from "three/addons/libs/stats.module.js"
+import { HorizontalBlurShader } from "three/addons/shaders/HorizontalBlurShader.js"
+import { VerticalBlurShader } from "three/addons/shaders/VerticalBlurShader.js"
 import { GLTFLoader } from "three/addons/loaders/GLTFLoader.js"
-import { OrbitControls } from "three/examples/jsm/controls/OrbitControls.js"
-import { addLights, createHUD, updateLightHelpers } from "./lights"
-import addGUI from "./controls"
-import { onKeyDown, onMouseDown, onWindowResize } from "./eventHandlers"
-import createInfoCard from "./infoCard"
+import { addLights } from "./lights"
+import { loadModel, blurShadow } from "./utils"
 
 const clock = new THREE.Clock()
-let newGltfLoaded = false
+
 init()
 
 function init() {
-  container = document.createElement("div")
-  document.body.appendChild(container)
-
-  // CAMERA
   camera = new THREE.PerspectiveCamera(
-    23,
-    SCREEN_WIDTH / SCREEN_HEIGHT,
-    NEAR,
-    FAR
+    50,
+    window.innerWidth / window.innerHeight,
+    0.1,
+    100
   )
-  camera.position.set(700, 50, 1900)
+  camera.position.set(0.5, 1, 2)
 
-  // SCENE
   scene = new THREE.Scene()
-  scene.background = new THREE.Color(0x808080)
-  scene.fog = new THREE.Fog(0x808080, 2000, FAR)
+  scene.background = new THREE.Color(0xffffff)
   addLights(scene)
-  createHUD()
-  createScene()
-  createInfoCard()
-  // RENDERER
-  renderer = new THREE.WebGLRenderer({ antialias: true })
-  renderer.setPixelRatio(window.devicePixelRatio)
-  renderer.setSize(SCREEN_WIDTH, SCREEN_HEIGHT)
-  renderer.setAnimationLoop(animate)
-  container.appendChild(renderer.domElement)
-
-  renderer.autoClear = false
-  renderer.shadowMap.enabled = true
-  renderer.shadowMap.type = THREE.PCFSoftShadowMap
-
-  // CONTROLS
-  controls = new OrbitControls(camera, renderer.domElement)
-
-  // STATS
   stats = new Stats()
-  container.appendChild(stats.dom)
+  document.body.appendChild(stats.dom)
+
+  window.addEventListener("resize", onWindowResize)
 
   const loader = new GLTFLoader()
   loader.load("lady.glb", function (gltf) {
     loadModel(gltf)
   })
-  // Event Listeners
-  window.addEventListener("resize", onWindowResize)
-  window.addEventListener("keydown", onKeyDown)
-  window.addEventListener("mousedown", onMouseDown)
-  // Drag and Drop File Upload Setup
-  window.addEventListener("dragover", function (event) {
-    event.preventDefault()
-    event.dataTransfer.dropEffect = "copy"
-  })
+  // the container, if you need to move the plane just move this
+  shadowGroup = new THREE.Group()
+  shadowGroup.position.y = -0.3
+  scene.add(shadowGroup)
 
-  window.addEventListener("drop", function (event) {
-    event.preventDefault()
-    if (event.dataTransfer.files.length > 0) {
-      const file = event.dataTransfer.files[0]
-      const reader = new FileReader()
-      reader.onload = function (e) {
-        const arrayBuffer = e.target.result
-        const loader = new GLTFLoader()
-        loader.parse(arrayBuffer, "", function (gltf) {
-          if (model) {
-            scene.remove(model)
-          }
-          loadModel(gltf)
-        })
-      }
-      reader.readAsArrayBuffer(file)
-    }
+  // the render target that will show the shadows in the plane texture
+  renderTarget = new THREE.WebGLRenderTarget(512, 512)
+  renderTarget.texture.generateMipmaps = false
+
+  // the render target that we will use to blur the first render target
+  renderTargetBlur = new THREE.WebGLRenderTarget(512, 512)
+  renderTargetBlur.texture.generateMipmaps = false
+
+  // make a plane and make it face up
+  const planeGeometry = new THREE.PlaneGeometry(
+    PLANE_WIDTH,
+    PLANE_HEIGHT
+  ).rotateX(Math.PI / 2)
+  const planeMaterial = new THREE.MeshBasicMaterial({
+    map: renderTarget.texture,
+    opacity: state.shadow.opacity,
+    transparent: true,
+    depthWrite: false,
   })
+  plane = new THREE.Mesh(planeGeometry, planeMaterial)
+  plane.castShadow = false
+  plane.receiveShadow = true
+  // make sure it's rendered after the fillPlane
+  plane.renderOrder = 1
+  shadowGroup.add(plane)
+
+  // the y from the texture is flipped!
+  plane.scale.y = -1
+
+  // the plane onto which to blur the texture
+  blurPlane = new THREE.Mesh(planeGeometry)
+  blurPlane.visible = false
+  shadowGroup.add(blurPlane)
+
+  // the plane with the color of the ground
+  const fillPlaneMaterial = new THREE.MeshBasicMaterial({
+    color: "#ffffff",
+    opacity: 1,
+    transparent: true,
+    depthWrite: false,
+  })
+  fillPlane = new THREE.Mesh(planeGeometry, fillPlaneMaterial)
+  fillPlane.rotateX(Math.PI)
+  shadowGroup.add(fillPlane)
+  // the camera to render the depth material from
+  shadowCamera = new THREE.OrthographicCamera(
+    -PLANE_WIDTH / 2,
+    PLANE_WIDTH / 2,
+    PLANE_HEIGHT / 2,
+    -PLANE_HEIGHT / 2,
+    0,
+    Shadow_Source_Height
+  )
+  // shadowCamera.rotation.x = Math.PI / 2 // get the camera to look up
+
+  shadowCamera.position.set(shadowCameraTransform.posX, shadowCameraTransform.posY, shadowCameraTransform.posZ); 
+  shadowCamera.rotation.x = shadowCameraTransform.rotX// get the camera to look up
+  // shadowCamera.lookAt(new THREE.Vector3(-5, 10, 0));
+  shadowCameraHelper = new THREE.CameraHelper(shadowCamera)
+  scene.add(shadowCameraHelper)
+  shadowGroup.add(shadowCamera)
+
+  cameraHelper = new THREE.CameraHelper(shadowCamera)
+
+  depthMaterial = new THREE.MeshDepthMaterial()
+  depthMaterial.userData.darkness = { value: state.shadow.darkness }
+  depthMaterial.onBeforeCompile = function (shader) {
+    shader.uniforms.darkness = depthMaterial.userData.darkness
+    shader.fragmentShader = /* glsl */  `
+      uniform float darkness;
+      ${shader.fragmentShader.replace(
+        "gl_FragColor = vec4( vec3( 1.0 - fragCoordZ ), opacity );",
+        "gl_FragColor = vec4( vec3( 0.0 ), ( 1.0 - fragCoordZ ) * darkness );"
+      )}
+    `
+  }
+
+  depthMaterial.depthTest = false
+  depthMaterial.depthWrite = false
+
+  horizontalBlurMaterial = new THREE.ShaderMaterial(HorizontalBlurShader)
+  horizontalBlurMaterial.depthTest = false
+
+  verticalBlurMaterial = new THREE.ShaderMaterial(VerticalBlurShader)
+  verticalBlurMaterial.depthTest = false
+
+  renderer = new THREE.WebGLRenderer({ antialias: true })
+  renderer.setPixelRatio(window.devicePixelRatio)
+  renderer.setSize(window.innerWidth, window.innerHeight)
+  renderer.setAnimationLoop(animate)
+  document.body.appendChild(renderer.domElement)
+
+
+
+  new OrbitControls(camera, renderer.domElement)
 }
 
-function createScene() {
-  // GROUND
-  const geometry = new THREE.PlaneGeometry(100, 100)
-  const planeMaterial = new THREE.MeshPhongMaterial({ color: 0x999999 }) // Grayish floor color
+function onWindowResize() {
+  camera.aspect = window.innerWidth / window.innerHeight
+  camera.updateProjectionMatrix()
 
-  const ground = new THREE.Mesh(geometry, planeMaterial)
-  ground.position.set(0, FLOOR, 0)
-  ground.rotation.x = -Math.PI / 2
-  ground.scale.set(100, 100, 100)
-
-  ground.castShadow = false
-  ground.receiveShadow = true
-
-  scene.add(ground)
+  renderer.setSize(window.innerWidth, window.innerHeight)
 }
 
 function animate() {
-  render()
-  stats.update()
-}
+  // remove the background
+  const initialBackground = scene.background
+  scene.background = null
 
-function render() {
+  // force the depthMaterial to everything
+  cameraHelper.visible = false
+  scene.overrideMaterial = depthMaterial
+
+  // set renderer clear alpha
+  const initialClearAlpha = renderer.getClearAlpha()
+  renderer.setClearAlpha(0)
+
+  // render to the render target to get the depths
+  renderer.setRenderTarget(renderTarget)
+  renderer.render(scene, shadowCamera)
+
+  // and reset the override material
+  scene.overrideMaterial = null
+  cameraHelper.visible = true
+
+  blurShadow(state.shadow.blur)
+
+  // a second pass to reduce the artifacts
+  // (0.4 is the minimum blur amout so that the artifacts are gone)
+  blurShadow(state.shadow.blur * 0.4)
+
+  // reset and render the normal scene
+  renderer.setRenderTarget(null)
+  renderer.setClearAlpha(initialClearAlpha)
+  scene.background = initialBackground
+
+  renderer.render(scene, camera)
+  stats.update()
   const delta = clock.getDelta()
 
   mixer?.update(delta)
 
-  if (!middleMouseDown || useOrbitControls) {
-    controls.update(delta)
-  }
+  // if (!middleMouseDown || useOrbitControls) {
+  //   controls.update(delta)
+  // }
 
   renderer.clear()
   renderer.render(scene, camera)
@@ -122,56 +190,5 @@ function render() {
   if (showHUD) {
     lightShadowMapViewer.render(renderer)
   }
-  updateLightHelpers()
-}
-
-function loadModel(gltf) {
-  gltf.scene.traverse(function (node) {
-    if (node.isMesh) {
-      node.castShadow = true
-      node.receiveShadow = true
-      node.frustumCulled = false
-    }
-  })
-
-  model = gltf.scene
-  model.scale.set(
-    modelTransform.scaleX,
-    modelTransform.scaleY,
-    modelTransform.scaleZ
-  )
-  model.position.set(
-    modelTransform.posX,
-    modelTransform.posY,
-    modelTransform.posZ
-  )
-  model.rotation.set(
-    modelTransform.rotX,
-    modelTransform.rotY,
-    modelTransform.rotZ
-  )
-  if(!newGltfLoaded){
-    model.getObjectByName("Ch22_Hair").material.roughness=0.7
-    model.getObjectByName("Ch22_Body").material.roughness=50
-  }
-  scene.add(model)
-
-  // Add animations if present
-  if (gltf.animations.length > 0) {
-    mixer = new THREE.AnimationMixer(model)
-    animations = gltf.animations // Store animations
-
-    // Choose a random animation from the list
-    const randomIndex = Math.floor(Math.random() * animations.length)
-    const randomAnimation = animations[newGltfLoaded?randomIndex:1]
-
-    // Play the randomly selected animation
-    activeAction = mixer.clipAction(randomAnimation)
-    activeAction.play()
-
-    // Store the name of the current animation
-    currentAnimation = randomAnimation.name
-  }
-  newGltfLoaded = true
-  addGUI()
+  // updateLightHelpers()
 }
